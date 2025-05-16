@@ -1,0 +1,11 @@
+.card-sesi {
+  border: 1px solid #dee2e6;
+  border-radius: 0.75rem;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  background-color: #fff;
+}
+.card-sesi.disabled {
+  opacity: 0.6;
+  pointer-events: none;
+}
