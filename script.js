@@ -98,9 +98,9 @@ function tampilkanFormSesi(laporan, nama) {
         <label>Bukti Dukung</label>
         <input type="file" class="form-control" name="${buktiKey}" accept=".jpg,.jpeg,.png,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx" ${sudahDiisi ? 'disabled' : ''}>
       </div>
-      <button class="btn btn-${sudahDiisi ? 'success' : 'primary'} w-100 btnSubmitSesi" data-sesi="${i}" ${sudahDiisi ? 'disabled' : ''}>
-        ${sudahDiisi ? 'Terkirim' : 'Kirim'}
-      </button>
+      <button type="button" class="btn btn-${sudahDiisi ? 'success' : 'primary'} w-100 btnSubmitSesi" data-sesi="${i}" ${sudahDiisi ? 'disabled' : ''}>
+  ${sudahDiisi ? 'Terkirim' : 'Kirim'}
+</button>
     `;
     container.appendChild(card);
   }
