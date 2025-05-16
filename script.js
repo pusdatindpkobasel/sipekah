@@ -148,7 +148,8 @@ function submitSesi(sesiNumber, nama) {
     .then(data => {
       if (data.success) {
         Swal.fire('Terkirim', `Laporan sesi ${sesiNumber} berhasil disimpan.`, 'success');
-        loginPegawai(); // Refresh status form tanpa reload halaman penuh
+        //  loginPegawai();Refresh status form tanpa reload halaman penuh
+        tampilkanFormSesi(data.laporanHariIni, nama);
       } else {
         Swal.fire('Gagal', data.message || 'Gagal menyimpan data', 'error');
       }
