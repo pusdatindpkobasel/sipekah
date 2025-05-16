@@ -1,129 +1,138 @@
-const webAppUrl = 'https://script.google.com/macros/s/AKfycbzkuKSY3T2A5jUXyS0djpfZvPSYsdXT2HjwkTZeLmePL0LbFuiycLiADKzGs18EnPpo/exec';
+const BASE_URL = 'https://script.google.com/macros/s/AKfycbyO44xnsqQotNWE7eaUKSV64c9QqIGC8yQr-6FlaXqt29geP7Ai71MxFTb1h8yYtfs/exec';
 
-let pegawai = null;
-let laporanHariIni = null;
+document.addEventListener('DOMContentLoaded', () => {
+  loadPegawaiDropdown();
 
-document.addEventListener("DOMContentLoaded", () => {
-  loadNamaPegawai();
-  setupSesiAccordion();
-
-  document.getElementById("loginBtn").addEventListener("click", handleLogin);
-  document.getElementById("logoutBtn").addEventListener("click", handleLogout);
-  document.getElementById("dashboardBtn").href = "https://lookerstudio.google.com/reporting/1c845d81-5b0a-41c9-bdfc-39fd342d0a5b"; // Sesuaikan URL dashboard
+  document.getElementById('btnLogin').addEventListener('click', loginPegawai);
+  document.getElementById('btnLogout').addEventListener('click', resetUI);
+  document.getElementById('formLaporan').addEventListener('submit', handleSubmit);
 });
 
-function loadNamaPegawai() {
-  fetch(`${webAppUrl}?action=getPegawai`)
+// Load daftar nama pegawai
+function loadPegawaiDropdown() {
+  fetch(`${BASE_URL}?action=getPegawai`)
     .then(res => res.json())
     .then(data => {
-      const select = document.getElementById("nama");
+      const select = document.getElementById('namaPegawai');
       data.forEach(p => {
-        const opt = document.createElement("option");
-        opt.value = p.nama;
-        opt.textContent = p.nama;
-        select.appendChild(opt);
+        const option = document.createElement('option');
+        option.value = p.nama;
+        option.textContent = p.nama;
+        select.appendChild(option);
       });
     });
 }
 
-function handleLogin() {
-  const nama = document.getElementById("nama").value;
-  const pin = document.getElementById("pin").value;
+// Proses login
+function loginPegawai() {
+  const nama = document.getElementById('namaPegawai').value;
+  const pass = document.getElementById('password').value;
+  if (!nama || !pass) {
+    Swal.fire('Lengkapi Login', 'Nama dan PIN wajib diisi', 'warning');
+    return;
+  }
 
-  if (!nama || !pin) return alert("Isi semua kolom.");
+  Swal.fire({
+    title: 'Memproses login...',
+    allowOutsideClick: false,
+    didOpen: () => Swal.showLoading()
+  });
 
-  fetch(`${webAppUrl}?action=getPegawai`)
+  fetch(`${BASE_URL}?action=login`, {
+    method: 'POST',
+    body: JSON.stringify({ nama, password: pass }),
+  })
     .then(res => res.json())
     .then(data => {
-      pegawai = data.find(p => p.nama === nama && p.pin === pin);
-      if (pegawai) {
-        document.getElementById("loginForm").classList.add("d-none");
-        document.getElementById("laporanForm").classList.remove("d-none");
-        document.getElementById("pegawaiInfo").innerHTML = `
-          <strong>Nama:</strong> ${pegawai.nama}<br/>
-          <strong>NIP:</strong> ${pegawai.nip}<br/>
-          <strong>Sub Bidang:</strong> ${pegawai.subbidang}
-        `;
-        getLaporanHariIni();
+      if (data.success) {
+        Swal.fire('Berhasil', 'Login berhasil. Memuat data pegawai...', 'success');
+        tampilkanDataPegawai(data.pegawai);
+        tampilkanFormSesi(data.laporanHariIni);
       } else {
-        alert("PIN salah!");
+        Swal.fire('Gagal Login', data.message || 'Nama atau PIN salah', 'error');
       }
-    });
+    })
+    .catch(() => Swal.fire('Error', 'Gagal menghubungi server', 'error'));
 }
 
-function handleLogout() {
-  location.reload();
+// Tampilkan info pegawai
+function tampilkanDataPegawai(pegawai) {
+  document.getElementById('pegawaiCard').classList.remove('d-none');
+  document.getElementById('pegawaiCard').innerHTML = `
+    <div class="card p-3">
+      <h5>Data Pegawai</h5>
+      <p><strong>Nama:</strong> ${pegawai.nama}</p>
+      <p><strong>NIP:</strong> ${pegawai.nip}</p>
+      <p><strong>Bidang:</strong> ${pegawai.bidang}</p>
+      <p><strong>Status:</strong> ${pegawai.status}</p>
+      <p><strong>Golongan:</strong> ${pegawai.golongan}</p>
+      <p><strong>Jabatan:</strong> ${pegawai.jabatan}</p>
+    </div>
+  `;
+  document.getElementById('formLaporan').classList.remove('d-none');
+  document.getElementById('btnLogout').classList.remove('d-none');
+  document.getElementById('btnDashboard').classList.remove('d-none');
+  document.getElementById('btnLogin').classList.add('d-none');
+  document.getElementById('namaPegawai').disabled = true;
+  document.getElementById('password').disabled = true;
 }
 
-function setupSesiAccordion() {
-  const container = document.getElementById("sesiAccordion");
-  const template = document.getElementById("sesiTemplate");
+// Reset UI setelah logout
+function resetUI() {
+  location.reload(); // refresh page untuk reset semua state
+}
 
+// Generate card isian sesi 1–7
+function tampilkanFormSesi(laporanHariIni) {
+  const container = document.getElementById('formSesiContainer');
+  container.innerHTML = '';
   for (let i = 1; i <= 7; i++) {
-    const clone = template.content.cloneNode(true);
-    clone.querySelector(".accordion-header").id = `heading${i}`;
-    clone.querySelector(".accordion-button").dataset.bsTarget = `#collapse${i}`;
-    clone.querySelector(".accordion-button").setAttribute("aria-controls", `collapse${i}`);
-    clone.querySelector(".accordion-button").innerHTML = `Sesi ${i} <span class="badge bg-success ms-2 d-none" id="status${i}">Terkirim</span>`;
-    clone.querySelector(".accordion-collapse").id = `collapse${i}`;
-    clone.querySelector(".accordion-collapse").setAttribute("aria-labelledby", `heading${i}`);
-    clone.querySelector(".accordion-collapse").dataset.bsParent = "#sesiAccordion";
-    clone.querySelector("textarea").id = `pekerjaan${i}`;
-    clone.querySelector("input[type='file']").id = `bukti${i}`;
-    const btn = clone.querySelector("button");
-    btn.id = `kirim${i}`;
-    btn.textContent = `Kirim Sesi ${i}`;
-    btn.addEventListener("click", () => handleSubmitSesi(i));
-    container.appendChild(clone);
+    const sesiKey = `sesi${i}`;
+    const buktiKey = `bukti${i}`;
+    const sudahDiisi = laporanHariIni && laporanHariIni[sesiKey];
+
+    const card = document.createElement('div');
+    card.className = `card-sesi ${sudahDiisi ? 'disabled' : ''}`;
+    card.innerHTML = `
+      <h6>Sesi ${i}</h6>
+      <div class="mb-2">
+        <label>Uraian Kegiatan</label>
+        <textarea class="form-control" rows="2" name="${sesiKey}" ${sudahDiisi ? 'disabled' : ''}></textarea>
+      </div>
+      <div>
+        <label>Bukti Dukung</label>
+        <input type="file" class="form-control" name="${buktiKey}" accept=".jpg,.jpeg,.png,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx" ${sudahDiisi ? 'disabled' : ''}>
+      </div>
+    `;
+    container.appendChild(card);
   }
 }
 
-function getLaporanHariIni() {
-  fetch(`${webAppUrl}?action=getLaporan&nama=${encodeURIComponent(pegawai.nama)}`)
+// Submit form
+function handleSubmit(e) {
+  e.preventDefault();
+  const formData = new FormData(document.getElementById('formLaporan'));
+  formData.append('nama', document.getElementById('namaPegawai').value);
+
+  Swal.fire({
+    title: 'Menyimpan data...',
+    allowOutsideClick: false,
+    didOpen: () => Swal.showLoading()
+  });
+
+  fetch(`${BASE_URL}?action=submit`, {
+    method: 'POST',
+    body: formData
+  })
     .then(res => res.json())
     .then(data => {
-      laporanHariIni = data;
-      for (let i = 1; i <= 7; i++) {
-        if (laporanHariIni[`Sesi${i}`]) {
-          document.getElementById(`status${i}`).classList.remove("d-none");
-          document.getElementById(`pekerjaan${i}`).disabled = true;
-          document.getElementById(`bukti${i}`).disabled = true;
-          document.getElementById(`kirim${i}`).disabled = true;
-        }
-      }
-    });
-}
-
-function handleSubmitSesi(sesi) {
-  const pekerjaan = document.getElementById(`pekerjaan${sesi}`).value.trim();
-  const buktiFile = document.getElementById(`bukti${sesi}`).files[0];
-
-  if (!pekerjaan) return alert("Deskripsi pekerjaan wajib diisi.");
-
-  const formData = new FormData();
-  formData.append("action", "submitForm");
-  formData.append("nama", pegawai.nama);
-  formData.append("nip", pegawai.nip);
-  formData.append("subbidang", pegawai.subbidang);
-  formData.append("sesi", `Sesi${sesi}`);
-  formData.append("pekerjaan", pekerjaan);
-  if (buktiFile) formData.append("bukti", buktiFile);
-
-  fetch(webAppUrl, { method: "POST", body: formData })
-    .then(res => res.json())
-    .then(res => {
-      if (res.success) {
-        alert(`Sesi ${sesi} berhasil dikirim!`);
-        document.getElementById(`status${sesi}`).classList.remove("d-none");
-        document.getElementById(`pekerjaan${sesi}`).disabled = true;
-        document.getElementById(`bukti${sesi}`).disabled = true;
-        document.getElementById(`kirim${sesi}`).disabled = true;
+      if (data.success) {
+        Swal.fire('Berhasil', 'Data berhasil disimpan!', 'success').then(() => {
+          loginPegawai(); // refresh tampilan form sesi
+        });
       } else {
-        alert(res.message || "Gagal menyimpan data.");
+        Swal.fire('Gagal', data.message || 'Gagal menyimpan data', 'error');
       }
     })
-    .catch(err => {
-      console.error(err);
-      alert("Terjadi kesalahan.");
-    });
+    .catch(() => Swal.fire('Error', 'Gagal menghubungi server', 'error'));
 }
