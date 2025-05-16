@@ -1,4 +1,4 @@
-const BASE_URL = 'https://script.google.com/macros/s/AKfycbyBSyd9uZNqcfTX39xSFPtDaEHrGfH7m1UPPYWHuDtiBp2g4W5kMoiZ6-Z81H4TV5wX/exec';
+const BASE_URL = 'https://script.google.com/macros/s/AKfycbx4-Nkq_Jc-pCq8BIGFAkLcdC4bZ41MgQoqwGpg9DgCgOonlsGJrFDdLc4GxxPVYtd-iA/exec';
 
 document.addEventListener('DOMContentLoaded', () => {
   loadPegawaiDropdown();
