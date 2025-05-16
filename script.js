@@ -18,6 +18,10 @@ function loadPegawaiDropdown() {
         option.textContent = p.nama;
         select.appendChild(option);
       });
+    })
+    .catch(err => {
+      console.error('Gagal load pegawai:', err);
+      Swal.fire('Error', 'Gagal memuat daftar pegawai', 'error');
     });
 }
 
