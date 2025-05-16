@@ -56,44 +56,50 @@ function loginPegawai() {
 }
 
 // Tampilkan info pegawai
+// Tampilkan info pegawai
 function tampilkanDataPegawai(pegawai) {
-  document.getElementById('pegawaiCard').classList.remove('d-none');
-  document.getElementById("dataPegawaiContainer").innerHTML = `
-  <div class="card p-3">
-    <h5>Data Pegawai</h5>
-    
-    <div class="row mb-1">
-      <div class="col-4 col-md-3 fw-semibold">Nama</div>
-      <div class="col-8 col-md-9">${pegawai.nama}</div>
+  // Tampilkan elemen card
+  const card = document.getElementById('pegawaiCard');
+  card.classList.remove('d-none');
+
+  // Isi card dengan tampilan dua kolom rapi
+  card.innerHTML = `
+    <div class="card p-3">
+      <h5>Data Pegawai</h5>
+      
+      <div class="row mb-1">
+        <div class="col-4 col-md-3 fw-semibold">Nama</div>
+        <div class="col-8 col-md-9">${pegawai.nama}</div>
+      </div>
+
+      <div class="row mb-1">
+        <div class="col-4 col-md-3 fw-semibold">NIP</div>
+        <div class="col-8 col-md-9">${pegawai.nip}</div>
+      </div>
+
+      <div class="row mb-1">
+        <div class="col-4 col-md-3 fw-semibold">Sub Bidang</div>
+        <div class="col-8 col-md-9">${pegawai.bidang}</div>
+      </div>
+
+      <div class="row mb-1">
+        <div class="col-4 col-md-3 fw-semibold">Status Kepegawaian</div>
+        <div class="col-8 col-md-9">${pegawai.status}</div>
+      </div>
+
+      <div class="row mb-1">
+        <div class="col-4 col-md-3 fw-semibold">Golongan</div>
+        <div class="col-8 col-md-9">${pegawai.golongan}</div>
+      </div>
+
+      <div class="row mb-1">
+        <div class="col-4 col-md-3 fw-semibold">Jabatan</div>
+        <div class="col-8 col-md-9">${pegawai.jabatan}</div>
+      </div>
     </div>
-    
-    <div class="row mb-1">
-      <div class="col-4 col-md-3 fw-semibold">NIP</div>
-      <div class="col-8 col-md-9">${pegawai.nip}</div>
-    </div>
-    
-    <div class="row mb-1">
-      <div class="col-4 col-md-3 fw-semibold">Sub Bidang</div>
-      <div class="col-8 col-md-9">${pegawai.bidang}</div>
-    </div>
-    
-    <div class="row mb-1">
-      <div class="col-4 col-md-3 fw-semibold">Status Kepegawaian</div>
-      <div class="col-8 col-md-9">${pegawai.status}</div>
-    </div>
-    
-    <div class="row mb-1">
-      <div class="col-4 col-md-3 fw-semibold">Golongan</div>
-      <div class="col-8 col-md-9">${pegawai.golongan}</div>
-    </div>
-    
-    <div class="row mb-1">
-      <div class="col-4 col-md-3 fw-semibold">Jabatan</div>
-      <div class="col-8 col-md-9">${pegawai.jabatan}</div>
-    </div>
-    
-  </div>
-`;
+  `;
+
+  // Tampilkan elemen terkait form
   document.getElementById('formLaporan').classList.remove('d-none');
   document.getElementById('btnLogout').classList.remove('d-none');
   document.getElementById('btnDashboard').classList.remove('d-none');
@@ -101,6 +107,7 @@ function tampilkanDataPegawai(pegawai) {
   document.getElementById('namaPegawai').disabled = true;
   document.getElementById('password').disabled = true;
 }
+
 
 // Reset UI setelah logout
 function resetUI() {
