@@ -58,17 +58,43 @@ function loginPegawai() {
 // Tampilkan info pegawai
 function tampilkanDataPegawai(pegawai) {
   document.getElementById('pegawaiCard').classList.remove('d-none');
-  document.getElementById('pegawaiCard').innerHTML = `
-    <div class="card p-3">
-      <h5>Data Pegawai</h5>
-      <p><strong>Nama:</strong> ${pegawai.nama}</p>
-      <p><strong>NIP:</strong> ${pegawai.nip}</p>
-      <p><strong>Bidang:</strong> ${pegawai.bidang}</p>
-      <p><strong>Status:</strong> ${pegawai.status}</p>
-      <p><strong>Golongan:</strong> ${pegawai.golongan}</p>
-      <p><strong>Jabatan:</strong> ${pegawai.jabatan}</p>
+  document.getElementById("dataPegawaiContainer").innerHTML = `
+  <div class="card p-3">
+    <h5>Data Pegawai</h5>
+    
+    <div class="row mb-1">
+      <div class="col-4 col-md-3 fw-semibold">Nama</div>
+      <div class="col-8 col-md-9">${pegawai.nama}</div>
     </div>
-  `;
+    
+    <div class="row mb-1">
+      <div class="col-4 col-md-3 fw-semibold">NIP</div>
+      <div class="col-8 col-md-9">${pegawai.nip}</div>
+    </div>
+    
+    <div class="row mb-1">
+      <div class="col-4 col-md-3 fw-semibold">Sub Bidang</div>
+      <div class="col-8 col-md-9">${pegawai.bidang}</div>
+    </div>
+    
+    <div class="row mb-1">
+      <div class="col-4 col-md-3 fw-semibold">Status Kepegawaian</div>
+      <div class="col-8 col-md-9">${pegawai.status}</div>
+    </div>
+    
+    <div class="row mb-1">
+      <div class="col-4 col-md-3 fw-semibold">Golongan</div>
+      <div class="col-8 col-md-9">${pegawai.golongan}</div>
+    </div>
+    
+    <div class="row mb-1">
+      <div class="col-4 col-md-3 fw-semibold">Jabatan</div>
+      <div class="col-8 col-md-9">${pegawai.jabatan}</div>
+    </div>
+    
+  </div>
+`;
+
   document.getElementById('formLaporan').classList.remove('d-none');
   document.getElementById('btnLogout').classList.remove('d-none');
   document.getElementById('btnDashboard').classList.remove('d-none');
