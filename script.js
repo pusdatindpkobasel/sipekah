@@ -94,7 +94,6 @@ function tampilkanDataPegawai(pegawai) {
     
   </div>
 `;
-
   document.getElementById('formLaporan').classList.remove('d-none');
   document.getElementById('btnLogout').classList.remove('d-none');
   document.getElementById('btnDashboard').classList.remove('d-none');
