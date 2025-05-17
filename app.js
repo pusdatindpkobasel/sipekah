@@ -83,22 +83,26 @@ async function submitLaporan() {
     if (buktiInput.files.length > 0) {
      const file = buktiInput.files[0];
 const reader = new FileReader();
-reader.readAsDataURL(file);
 
-await new Promise(resolve => reader.onload = resolve);
-const base64Data = reader.result.split(",")[1]; // Hanya ambil data base64-nya
+await new Promise(resolve => {
+  reader.onload = () => resolve();
+  reader.readAsDataURL(file);
+});
 
-const uploadForm = new FormData();
-uploadForm.append("action", "uploadFile");
-uploadForm.append("filename", `${currentUser.nama}_sesi${i}_${Date.now()}`);
-uploadForm.append("mimeType", file.type);
-uploadForm.append("file", base64Data); // Kirim sebagai base64
+const base64Data = reader.result.split(",")[1]; // Ambil data base64-nya
 
 try {
   const resUpload = await fetch(URL_GAS, {
     method: "POST",
-    body: uploadForm,
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      action: "uploadFile",
+      filename: `${currentUser.nama}_sesi${i}_${Date.now()}`,
+      mimeType: file.type,
+      file: base64Data
+    }),
   });
+
   const upload = await resUpload.json();
   formData.append(`bukti${i}`, upload.url || "");
 } catch (e) {
