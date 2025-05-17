@@ -1,126 +1,116 @@
-// === script.js ===
-const API_URL = "https://script.google.com/macros/s/AKfycbyinaQMZ_9q3vnsUBDxXGpCsTI1QS_GwqI5p3fZVu-qn7QqjG6JOXBVD92ntm6_yImJ6w/exec";
-let dataPegawai = [];
-let namaLogin = "";
+// script.js terbaru dengan sistem AJAX + update kolom dinamis
 
-// Load data pegawai
-fetch(`${API_URL}?action=getPegawai`)
-  .then((res) => res.json())
-  .then((data) => {
-    dataPegawai = data;
-    const select = document.getElementById("namaPegawai");
-    data.forEach((p) => {
-      const opt = document.createElement("option");
-      opt.value = p.nama;
-      opt.textContent = p.nama;
-      select.appendChild(opt);
+const BASE_URL = 'https://script.google.com/macros/s/AKfycbzBbwISBZqo4BDLw7HaA66OzLsEZr14ng6e4lkWRvRXHDqOopSKSEH93QFFL__AlMmv/exec';
+let pegawaiAktif = null;
+
+window.addEventListener('load', () => {
+  fetch(`${BASE_URL}?action=getPegawai`)
+    .then(res => res.json())
+    .then(data => {
+      const select = document.getElementById('namaPegawai');
+      data.forEach(item => {
+        const opt = document.createElement('option');
+        opt.value = item.nama;
+        opt.textContent = item.nama;
+        select.appendChild(opt);
+      });
     });
-  });
-
-// Login
-const btnLogin = document.getElementById("btnLogin");
-btnLogin.addEventListener("click", () => {
-  const nama = document.getElementById("namaPegawai").value;
-  const pin = document.getElementById("password").value;
-  const pegawai = dataPegawai.find((p) => p.nama === nama && p.pin === pin);
-
-  if (pegawai) {
-    namaLogin = nama;
-    document.getElementById("login-card").classList.add("d-none");
-    document.getElementById("formLaporan").classList.remove("d-none");
-    document.getElementById("btnLogout").classList.remove("d-none");
-    document.getElementById("btnDashboard").classList.remove("d-none");
-    loadLaporan(nama);
-  } else {
-    Swal.fire("Gagal", "Nama atau PIN salah", "error");
-  }
 });
 
-// Logout
-const btnLogout = document.getElementById("btnLogout");
-btnLogout.addEventListener("click", () => location.reload());
+document.getElementById('btnLogin').addEventListener('click', () => {
+  const nama = document.getElementById('namaPegawai').value;
+  const pin = document.getElementById('password').value;
 
-// Load laporan dari backend
-function loadLaporan(nama) {
-  fetch(`${API_URL}?action=getLaporan&nama=${encodeURIComponent(nama)}`)
-    .then((res) => res.json())
-    .then((data) => renderForm(nama, data));
-}
-
-// Render form per sesi
-function renderForm(nama, laporan) {
-  const container = document.getElementById("formSesiContainer");
-  container.innerHTML = "";
-  for (let i = 1; i <= 7; i++) {
-    const sudah = laporan[`Sesi ${i}`];
-    const card = document.createElement("div");
-    card.className = "card mb-3 shadow";
-    card.innerHTML = `
-      <div class="card-body">
-        <h5 class="card-title">Sesi ${i}</h5>
-        <textarea class="form-control mb-2 inputKegiatan" rows="2" placeholder="Uraian pekerjaan sesi ${i}" ${sudah ? "readonly" : ""}>${sudah ? sudah.kegiatan : ""}</textarea>
-        <input type="file" class="form-control mb-2 inputFile" accept="image/*,.pdf,.doc,.docx,.xls,.xlsx" ${sudah ? "disabled" : ""} />
-        <button class="btn btn-${sudah ? "success" : "primary"} w-100 btnSubmitSesi" data-sesi="${i}" ${sudah ? "disabled" : ""}>
-          ${sudah ? "Terkirim" : "Kirim"}
-        </button>
-      </div>`;
-    container.appendChild(card);
+  if (!nama || !pin) {
+    Swal.fire('Error', 'Nama dan PIN wajib diisi!', 'error');
+    return;
   }
 
-  document.querySelectorAll(".btnSubmitSesi").forEach((btn) => {
-    btn.addEventListener("click", async (e) => {
-      const sesi = e.target.dataset.sesi;
-      const cardBody = e.target.closest(".card-body");
-      const kegiatan = cardBody.querySelector(".inputKegiatan").value.trim();
-      const file = cardBody.querySelector(".inputFile").files[0];
+  fetch(`${BASE_URL}?action=getPegawai`)
+    .then(res => res.json())
+    .then(data => {
+      const found = data.find(p => p.nama === nama && p.password === pin);
+      if (!found) return Swal.fire('Gagal Login', 'Nama atau PIN salah.', 'error');
 
-      if (!kegiatan) {
-        Swal.fire("Gagal", "Uraian pekerjaan wajib diisi", "warning");
-        return;
-      }
+      pegawaiAktif = found;
+      document.getElementById('login-card').classList.add('d-none');
+      document.getElementById('btnLogout').classList.remove('d-none');
+      document.getElementById('btnDashboard').classList.remove('d-none');
+      document.getElementById('formLaporan').classList.remove('d-none');
 
-      Swal.fire({
-        title: "Menyimpan...",
-        allowOutsideClick: false,
-        didOpen: () => Swal.showLoading(),
-      });
-
-      let fileId = "";
-      if (file) {
-        const formData = new FormData();
-        formData.append("file", file);
-        formData.append("nama", namaLogin);
-        formData.append("sesi", sesi);
-
-        const uploadRes = await fetch(`${API_URL}?action=uploadFile`, {
-          method: "POST",
-          body: formData,
-        });
-        const uploadData = await uploadRes.json();
-        fileId = uploadData.fileId || "";
-      }
-
-      const payload = {
-        nama: namaLogin,
-        sesi,
-        kegiatan,
-        fileId,
-      };
-
-      const simpanRes = await fetch(`${API_URL}?action=submitForm`, {
-        method: "POST",
-        body: JSON.stringify(payload),
-        headers: { "Content-Type": "application/json" },
-      });
-
-      const simpanData = await simpanRes.json();
-
-      if (simpanData.status === "success") {
-        Swal.fire("Berhasil", "Laporan sesi berhasil dikirim", "success");
-        loadLaporan(namaLogin);
-      } else {
-        Swal.fire("Gagal", simpanData.message || "Terjadi kesalahan", "error");
-      }
+      tampilkanFormSesi();
     });
-  });
+});
+
+document.getElementById('btnLogout').addEventListener('click', () => {
+  location.reload();
+});
+
+function tampilkanFormSesi() {
+  fetch(`${BASE_URL}?action=getLaporan&nama=${encodeURIComponent(pegawaiAktif.nama)}`)
+    .then(res => res.json())
+    .then(laporan => {
+      const container = document.getElementById('formSesiContainer');
+      container.innerHTML = '';
+      for (let i = 1; i <= 7; i++) {
+        const sesiKey = `Sesi ${i}`;
+        const sudahDiisi = laporan[sesiKey] && laporan[sesiKey].kegiatan;
+
+        const card = document.createElement('div');
+        card.className = 'card mb-3';
+        card.innerHTML = `
+          <div class="card-header bg-${sudahDiisi ? 'success' : 'primary'} text-white">
+            ${sesiKey} ${sudahDiisi ? '(Terkirim)' : ''}
+          </div>
+          <div class="card-body">
+            <div class="mb-2">
+              <label>Kegiatan</label>
+              <input type="text" class="form-control kegiatan-input" id="kegiatan-${i}" ${sudahDiisi ? 'disabled' : ''}>
+            </div>
+            <div class="mb-2">
+              <label>Bukti Dukung</label>
+              <input type="file" class="form-control bukti-input" id="bukti-${i}" ${sudahDiisi ? 'disabled' : ''}>
+            </div>
+            <button class="btn btn-${sudahDiisi ? 'success' : 'primary'} w-100 btnSubmitSesi" data-sesi="${i}" ${sudahDiisi ? 'disabled' : ''}>
+              ${sudahDiisi ? 'Terkirim' : 'Kirim'}
+            </button>
+          </div>
+        `;
+        container.appendChild(card);
+      }
+
+      document.querySelectorAll('.btnSubmitSesi').forEach(btn => {
+        btn.addEventListener('click', async e => {
+          const sesi = btn.dataset.sesi;
+          const kegiatan = document.getElementById(`kegiatan-${sesi}`).value;
+          const bukti = document.getElementById(`bukti-${sesi}`).files[0];
+
+          if (!kegiatan || !bukti) {
+            return Swal.fire('Error', 'Kegiatan dan bukti wajib diisi.', 'error');
+          }
+
+          Swal.fire({ title: 'Menyimpan...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+
+          const formData = new FormData();
+          formData.append('action', 'submitForm');
+          formData.append('nama', pegawaiAktif.nama);
+          formData.append('sesi', sesi);
+          formData.append('kegiatan', kegiatan);
+          formData.append('file', bukti);
+
+          try {
+            const res = await fetch(BASE_URL, { method: 'POST', body: formData });
+            const result = await res.json();
+            if (result.success) {
+              Swal.fire('Berhasil', 'Laporan sesi berhasil disimpan!', 'success');
+              tampilkanFormSesi();
+            } else {
+              Swal.fire('Gagal', result.message || 'Gagal menyimpan data.', 'error');
+            }
+          } catch (err) {
+            Swal.fire('Error', 'Terjadi kesalahan jaringan.', 'error');
+          }
+        });
+      });
+    });
 }
