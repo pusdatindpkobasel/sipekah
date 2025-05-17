@@ -2,19 +2,19 @@ const URL_GAS = 'https://script.google.com/macros/s/AKfycbzBybyAZbQLm-Irj7kqOJQ0
 let currentUser = null;
 
 async function fetchPegawai() {
-  try {
-    const res = await fetch(URL_GAS + '?action=getPegawai');
-    const data = await res.json();
-    console.log("Nama-nama pegawai:", data); // ← debug
-    const namaPegawaiEl = document.getElementById('namaPegawai');
-    namaPegawaiEl.innerHTML = data.map(n => `<option value="${n}">${n}</option>`).join('');
-  } catch (err) {
-    console.error("Fetch Pegawai Gagal:", err);
-    Swal.fire("Gagal", "Tidak bisa ambil data pegawai", "error");
-  }
-}
+      try {
+        const res = await fetch(URL_GAS + '?action=getPegawai');
+        const data = await res.json();
+        console.log("Data pegawai:", data);
+        const namaPegawaiEl = document.getElementById('namaPegawai');
+        namaPegawaiEl.innerHTML = data.map(n => `<option value="${n}">${n}</option>`).join('');
+      } catch (err) {
+        console.error("Gagal ambil data pegawai", err);
+        Swal.fire("Gagal", "Tidak bisa ambil data pegawai", "error");
+      }
+    }
 
-fetchPegawai();
+    fetchPegawai();
 
 function login() {
   const nama = encodeURIComponent(document.getElementById('namaPegawai').value);
