@@ -81,7 +81,7 @@ async function submitLaporan() {
     formData.append(`sesi${i}`, sesi);
 
     if (buktiInput.files.length > 0) {
-      const file = buktiInput.files[0];
+     const file = buktiInput.files[0];
 const reader = new FileReader();
 reader.readAsDataURL(file);
 
