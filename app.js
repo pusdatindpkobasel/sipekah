@@ -17,14 +17,16 @@ function login() {
   fetch(`${URL_GAS}?action=login&nama=${nama}&password=${password}`)
     .then(res => res.json())
     .then(res => {
-      if (res.success) {
-        currentUser = res.data;
-        showForm();
-        Swal.fire("Berhasil", "Login sukses!", "success");
-      } else {
-        Swal.fire("Gagal Login", res.message, "error");
-      }
-    })
+      console.log("Response login:", res); // ← Tambahkan ini
+  if (res.success) {
+    currentUser = res.data;
+    Swal.fire("Berhasil", "Login sukses!", "success").then(() => {
+      showForm(); // ← hanya dijalankan setelah popup ditutup
+    });
+  } else {
+    Swal.fire("Gagal Login", res.message, "error");
+  }
+})
     .catch(err => {
       console.error("Login error:", err);
       Swal.fire("Kesalahan", "Tidak dapat terhubung ke server", "error");
@@ -32,6 +34,8 @@ function login() {
 }
 
 function showForm() {
+  console.log("User:", currentUser); // ← tambahkan ini untuk debugging
+
   const hari = new Date().getDay();
   const jam = new Date().getHours();
   if (hari === 0 || hari === 6 || jam < 8 || jam >= 22) {
@@ -41,6 +45,7 @@ function showForm() {
 
   document.getElementById('loginForm').style.display = 'none';
   document.getElementById('formLaporan').style.display = 'block';
+
   document.getElementById('infoUser').innerText = `${currentUser.nama} | ${currentUser.status} | ${currentUser.bidang}`;
 
   let html = '';
