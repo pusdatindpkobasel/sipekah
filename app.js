@@ -61,12 +61,6 @@ function showForm() {
 }
 
 async function submitLaporan() {
-  const data = {
-    nama: currentUser.nama,
-    status: currentUser.status,
-    bidang: currentUser.bidang
-  };
-
   const formData = new FormData();
 
   formData.append("action", "submitLaporan");
@@ -77,33 +71,29 @@ async function submitLaporan() {
   for (let i = 1; i <= 7; i++) {
     const sesi = document.getElementById(`sesi${i}`).value;
     const buktiInput = document.getElementById(`bukti${i}`);
-
     formData.append(`sesi${i}`, sesi);
 
     if (buktiInput.files.length > 0) {
       const file = buktiInput.files[0];
       const filename = `${currentUser.nama}_sesi${i}_${Date.now()}`;
-const resUpload = await fetch(`${URL_GAS}?action=uploadFile&filename=${encodeURIComponent(filename)}`, {
-  method: "POST",
-  body: file,
-  headers: {
-    "Content-Type": file.type,
-  },
-});
       try {
-        const filename = `nama_sesi${i}_${Date.now()}`;
-const resUpload = await fetch(`${URL_GAS}?action=uploadFile&filename=${encodeURIComponent(filename)}`, {
-  method: "POST",
-  body: file,
-  headers: {
-    "Content-Type": file.type,
-  },
-});
-const upload = await resUpload.json();
-formData.append(`bukti${i}`, upload.url || "");
+        const resUpload = await fetch(`${URL_GAS}?action=uploadFile&filename=${encodeURIComponent(filename)}`, {
+          method: "POST",
+          body: file,
+          headers: {
+            "Content-Type": file.type,
+          },
+        });
 
         const upload = await resUpload.json();
-        formData.append(`bukti${i}`, upload.url || "");
+
+        console.log(`Upload sesi ${i}:`, upload); // Debug hasil upload
+
+        if (upload.success && upload.url) {
+          formData.append(`bukti${i}`, upload.url);
+        } else {
+          formData.append(`bukti${i}`, "");
+        }
       } catch (e) {
         console.error(`Upload bukti sesi ${i} gagal`, e);
         formData.append(`bukti${i}`, "");
@@ -131,6 +121,8 @@ formData.append(`bukti${i}`, upload.url || "");
     console.error("Submit error:", err);
     Swal.fire("Kesalahan", "Tidak dapat mengirim laporan", "error");
   }
+}
+
 }
 
 function logout() {
