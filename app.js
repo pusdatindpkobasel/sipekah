@@ -83,9 +83,9 @@ async function submitLaporan() {
     if (buktiInput.files.length > 0) {
       const file = buktiInput.files[0];
       const uploadForm = new FormData();
-      uploadForm.append("action", "uploadFile");
-      uploadForm.append("file", file);
-      uploadForm.append("filename", `${currentUser.nama}_sesi${i}_${Date.now()}`);
+uploadForm.append("action", "uploadFile");
+uploadForm.append("file", file);
+uploadForm.append("filename", `${currentUser.nama}_sesi${i}_${Date.now()}`);
 
       try {
         const resUpload = await fetch(URL_GAS, {
