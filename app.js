@@ -14,7 +14,9 @@ async function fetchPegawai() {
       }
     }
 
-    fetchPegawai();
+    document.addEventListener("DOMContentLoaded", function () {
+  fetchPegawai();
+});
 
 function login() {
   const nama = encodeURIComponent(document.getElementById('namaPegawai').value);
