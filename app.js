@@ -11,30 +11,25 @@ async function fetchPegawai() {
 fetchPegawai();
 
 function login() {
-  const nama = document.getElementById('namaPegawai').value;
-  const password = document.getElementById('password').value;
+  const nama = encodeURIComponent(document.getElementById('namaPegawai').value);
+  const password = encodeURIComponent(document.getElementById('password').value);
 
-  fetch(URL_GAS + "?action=login", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ nama, password })
-  })
-  .then(res => res.json())
-  .then(res => {
-    if (res.success) {
-      currentUser = res.data;
-      showForm();
-      Swal.fire("Berhasil", "Login sukses!", "success");
-    } else {
-      Swal.fire("Gagal Login", res.message, "error");
-    }
-  })
-  .catch(err => {
-    console.error("Login error:", err);
-    Swal.fire("Kesalahan", "Tidak dapat terhubung ke server", "error");
-  });
+  fetch(`${URL_GAS}?action=login&nama=${nama}&password=${password}`)
+    .then(res => res.json())
+    .then(res => {
+      if (res.success) {
+        currentUser = res.data;
+        showForm();
+        Swal.fire("Berhasil", "Login sukses!", "success");
+      } else {
+        Swal.fire("Gagal Login", res.message, "error");
+      }
+    })
+    .catch(err => {
+      console.error("Login error:", err);
+      Swal.fire("Kesalahan", "Tidak dapat terhubung ke server", "error");
+    });
 }
-
 
 function showForm() {
   const hari = new Date().getDay();
