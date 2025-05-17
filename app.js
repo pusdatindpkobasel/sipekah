@@ -16,16 +16,25 @@ function login() {
 
   fetch(URL_GAS + "?action=login", {
     method: "POST",
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ nama, password })
-  }).then(r => r.json()).then(res => {
+  })
+  .then(res => res.json())
+  .then(res => {
     if (res.success) {
       currentUser = res.data;
       showForm();
+      Swal.fire("Berhasil", "Login sukses!", "success");
     } else {
       Swal.fire("Gagal Login", res.message, "error");
     }
+  })
+  .catch(err => {
+    console.error("Login error:", err);
+    Swal.fire("Kesalahan", "Tidak dapat terhubung ke server", "error");
   });
 }
+
 
 function showForm() {
   const hari = new Date().getDay();
