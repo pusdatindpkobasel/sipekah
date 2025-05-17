@@ -61,6 +61,13 @@ function showForm() {
 }
 
 async function submitLaporan() {
+  Swal.fire({
+    title: 'Mengirim...',
+    text: 'Menyimpan laporan, mohon tunggu.',
+    allowOutsideClick: false,
+    didOpen: () => Swal.showLoading()
+  });
+
   const data = {
     nama: currentUser.nama,
     status: currentUser.status,
@@ -75,26 +82,44 @@ async function submitLaporan() {
       const form = new FormData();
       form.append("file", file);
       form.append("filename", `${currentUser.nama}_sesi${i}_${Date.now()}`);
-      const upload = await fetch(URL_GAS + "?action=uploadFile", {
-        method: "POST",
-        body: form
-      }).then(r => r.json());
-      data[`bukti${i}`] = upload.url;
+      try {
+        const upload = await fetch(URL_GAS + "?action=uploadFile", {
+          method: "POST",
+          body: form
+        }).then(r => r.json());
+        data[`bukti${i}`] = upload.url;
+      } catch (e) {
+        console.error(`Upload bukti sesi ${i} gagal`, e);
+        data[`bukti${i}`] = "";
+      }
     } else {
       data[`bukti${i}`] = "";
     }
   }
 
+  console.log("Data akan dikirim:", data);
+
   fetch(URL_GAS + "?action=submitLaporan", {
     method: "POST",
+    headers: {
+      'Content-Type': 'application/json' // ← penting
+    },
     body: JSON.stringify(data)
-  }).then(r => r.json()).then(res => {
-    if (res.success) {
-      Swal.fire("Berhasil", "Laporan berhasil disimpan!", "success");
-    } else {
-      Swal.fire("Gagal", "Terjadi kesalahan saat menyimpan", "error");
-    }
-  });
+  })
+    .then(r => r.json())
+    .then(res => {
+      Swal.close();
+      if (res.success) {
+        Swal.fire("Berhasil", "Laporan berhasil disimpan!", "success");
+      } else {
+        Swal.fire("Gagal", res.message || "Terjadi kesalahan saat menyimpan", "error");
+      }
+    })
+    .catch(err => {
+      Swal.close();
+      console.error("Submit error:", err);
+      Swal.fire("Gagal", "Terjadi kesalahan saat mengirim laporan", "error");
+    });
 }
 
 function logout() {
