@@ -36,13 +36,6 @@ function login() {
 function showForm() {
   console.log("User:", currentUser); // ← tambahkan ini untuk debugging
 
-  const hari = new Date().getDay();
-  const jam = new Date().getHours();
-  if (hari === 0 || hari === 6 || jam < 8 || jam >= 22) {
-    Swal.fire("Di luar jam/hari kerja", "Form hanya aktif Senin–Jumat pukul 08.00–22.00", "info");
-    return;
-  }
-
   document.getElementById('loginForm').style.display = 'none';
   document.getElementById('formLaporan').style.display = 'block';
 
