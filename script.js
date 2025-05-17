@@ -4,23 +4,21 @@ const BASE_URL = 'https://script.google.com/macros/s/AKfycbwVu3BefQJKI30vGuMTh6w
 let pegawaiAktif = null;
 
 window.addEventListener('load', () => {
-  fetch(`${BASE_URL}?action=getPegawai`)
-    .then(res => {
-      if (!res.ok) throw new Error('Jaringan gagal');
-      return res.json();
-    })
-    .then(data => {
-      const select = document.getElementById('namaPegawai');
-      data.forEach(item => {
-        const opt = document.createElement('option');
-        opt.value = item.nama;
-        opt.textContent = item.nama;
-        select.appendChild(opt);
-      });
-    })
-    .catch(err => Swal.fire('Error', 'Gagal memuat data pegawai', 'error'));
-});
+  // saat load halaman
+fetch(`${BASE_URL}?action=getPegawai`)
+  .then(res => res.json())
+  .then(data => {
+    const select = document.getElementById('namaPegawai');
+    data.forEach(item => {
+      const opt = document.createElement('option');
+      opt.value = item['Nama Pegawai'];   // pakai key sesuai data asli
+      opt.textContent = item['Nama Pegawai'];
+      select.appendChild(opt);
+    });
+  })
+  .catch(() => Swal.fire('Error', 'Gagal memuat data pegawai', 'error'));
 
+// saat login
 document.getElementById('btnLogin').addEventListener('click', () => {
   const nama = document.getElementById('namaPegawai').value;
   const pin = document.getElementById('password').value;
@@ -33,7 +31,7 @@ document.getElementById('btnLogin').addEventListener('click', () => {
   fetch(`${BASE_URL}?action=getPegawai`)
     .then(res => res.json())
     .then(data => {
-      const found = data.find(p => p.nama === nama && p.password === pin);
+      const found = data.find(p => p['Nama Pegawai'] === nama && p.password === pin);
       if (!found) return Swal.fire('Gagal Login', 'Nama atau PIN salah.', 'error');
 
       pegawaiAktif = found;
@@ -45,6 +43,7 @@ document.getElementById('btnLogin').addEventListener('click', () => {
       tampilkanFormSesi();
     });
 });
+
 
 document.getElementById('btnLogout').addEventListener('click', () => {
   location.reload();
