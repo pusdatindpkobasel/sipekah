@@ -81,34 +81,23 @@ async function submitLaporan() {
     formData.append(`sesi${i}`, sesi);
 
     if (buktiInput.files.length > 0) {
-     const file = buktiInput.files[0];
-const reader = new FileReader();
+      const file = buktiInput.files[0];
+      const uploadForm = new FormData();
+      uploadForm.append("action", "uploadFile");
+      uploadForm.append("file", file);
+      uploadForm.append("filename", `${currentUser.nama}_sesi${i}_${Date.now()}`);
 
-await new Promise(resolve => {
-  reader.onload = () => resolve();
-  reader.readAsDataURL(file);
-});
-
-const base64Data = reader.result.split(",")[1]; // Ambil data base64-nya
-
-try {
-  const resUpload = await fetch(URL_GAS, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      action: "uploadFile",
-      filename: `${currentUser.nama}_sesi${i}_${Date.now()}`,
-      mimeType: file.type,
-      file: base64Data
-    }),
-  });
-
-  const upload = await resUpload.json();
-  formData.append(`bukti${i}`, upload.url || "");
-} catch (e) {
-  console.error(`Upload bukti sesi ${i} gagal`, e);
-  formData.append(`bukti${i}`, "");
-}
+      try {
+        const resUpload = await fetch(URL_GAS, {
+          method: "POST",
+          body: uploadForm,
+        });
+        const upload = await resUpload.json();
+        formData.append(`bukti${i}`, upload.url || "");
+      } catch (e) {
+        console.error(`Upload bukti sesi ${i} gagal`, e);
+        formData.append(`bukti${i}`, "");
+      }
     } else {
       formData.append(`bukti${i}`, "");
     }
