@@ -5,7 +5,10 @@ let pegawaiAktif = null;
 
 window.addEventListener('load', () => {
   fetch(`${BASE_URL}?action=getPegawai`)
-    .then(res => res.json())
+    .then(res => {
+      if (!res.ok) throw new Error('Jaringan gagal');
+      return res.json();
+    })
     .then(data => {
       const select = document.getElementById('namaPegawai');
       data.forEach(item => {
@@ -14,7 +17,8 @@ window.addEventListener('load', () => {
         opt.textContent = item.nama;
         select.appendChild(opt);
       });
-    });
+    })
+    .catch(err => Swal.fire('Error', 'Gagal memuat data pegawai', 'error'));
 });
 
 document.getElementById('btnLogin').addEventListener('click', () => {
