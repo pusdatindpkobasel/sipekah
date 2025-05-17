@@ -1,6 +1,6 @@
 // script.js terbaru dengan sistem AJAX + update kolom dinamis
 
-const BASE_URL = 'https://script.google.com/macros/s/AKfycbzBbwISBZqo4BDLw7HaA66OzLsEZr14ng6e4lkWRvRXHDqOopSKSEH93QFFL__AlMmv/exec';
+const BASE_URL = 'https://script.google.com/macros/s/AKfycbwVu3BefQJKI30vGuMTh6w6p9AXjsJnKHb7ChN77TY5m46UZPsKtnUObSXN2uuuhUBk/exec';
 let pegawaiAktif = null;
 
 window.addEventListener('load', () => {
