@@ -9,10 +9,11 @@ fetch(`${BASE_URL}?action=getPegawai`)
   .then(res => res.json())
   .then(data => {
     const select = document.getElementById('namaPegawai');
+    select.innerHTML = '<option value="">-- Pilih Nama --</option>';
     data.forEach(item => {
       const opt = document.createElement('option');
-      opt.value = item['Nama Pegawai'];   // pakai key sesuai data asli
-      opt.textContent = item['Nama Pegawai'];
+      opt.value = item.NamaPegawai;
+      opt.textContent = item.NamaPegawai;
       select.appendChild(opt);
     });
   })
