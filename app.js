@@ -1,4 +1,4 @@
-const URL_GAS = 'PASTE_URL_WEBAPP_GAS_KAMU';
+const URL_GAS = 'https://script.google.com/macros/s/AKfycbyuILYg2W-_P8PhymeRksxOM8XnufOTYXRE4zrr7CSMPDLTD3CzHqG2qAG8txGSyFKxrg/exec';
 let currentUser = null;
 
 async function fetchPegawai() {
