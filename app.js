@@ -1,4 +1,4 @@
-const URL_GAS = 'https://script.google.com/macros/s/AKfycbyuILYg2W-_P8PhymeRksxOM8XnufOTYXRE4zrr7CSMPDLTD3CzHqG2qAG8txGSyFKxrg/exec';
+const URL_GAS = 'https://script.google.com/macros/s/AKfycbzopHpZV8txyMpZqD_8KykL2hvasNEwl4r05k_qyK7Jax-AbNyjakxuJiN6rWf0DyQjMA/exec';
 let currentUser = null;
 
 async function fetchPegawai() {
