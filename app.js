@@ -61,65 +61,66 @@ function showForm() {
 }
 
 async function submitLaporan() {
-  Swal.fire({
-    title: 'Mengirim...',
-    text: 'Menyimpan laporan, mohon tunggu.',
-    allowOutsideClick: false,
-    didOpen: () => Swal.showLoading()
-  });
-
   const data = {
     nama: currentUser.nama,
     status: currentUser.status,
     bidang: currentUser.bidang
   };
 
+  const formData = new FormData();
+
+  formData.append("action", "submitLaporan");
+  formData.append("nama", currentUser.nama);
+  formData.append("status", currentUser.status);
+  formData.append("bidang", currentUser.bidang);
+
   for (let i = 1; i <= 7; i++) {
-    data[`sesi${i}`] = document.getElementById(`sesi${i}`).value;
-    const fileInput = document.getElementById(`bukti${i}`);
-    if (fileInput.files.length > 0) {
-      const file = fileInput.files[0];
-      const form = new FormData();
-      form.append("file", file);
-      form.append("filename", `${currentUser.nama}_sesi${i}_${Date.now()}`);
+    const sesi = document.getElementById(`sesi${i}`).value;
+    const buktiInput = document.getElementById(`bukti${i}`);
+
+    formData.append(`sesi${i}`, sesi);
+
+    if (buktiInput.files.length > 0) {
+      const file = buktiInput.files[0];
+      const uploadForm = new FormData();
+      uploadForm.append("action", "uploadFile");
+      uploadForm.append("file", file);
+      uploadForm.append("filename", `${currentUser.nama}_sesi${i}_${Date.now()}`);
+
       try {
-        const upload = await fetch(URL_GAS + "?action=uploadFile", {
+        const resUpload = await fetch(URL_GAS, {
           method: "POST",
-          body: form
-        }).then(r => r.json());
-        data[`bukti${i}`] = upload.url;
+          body: uploadForm,
+        });
+        const upload = await resUpload.json();
+        formData.append(`bukti${i}`, upload.url || "");
       } catch (e) {
         console.error(`Upload bukti sesi ${i} gagal`, e);
-        data[`bukti${i}`] = "";
+        formData.append(`bukti${i}`, "");
       }
     } else {
-      data[`bukti${i}`] = "";
+      formData.append(`bukti${i}`, "");
     }
   }
 
-  console.log("Data akan dikirim:", data);
-
-  fetch(URL_GAS + "?action=submitLaporan", {
-    method: "POST",
-    headers: {
-      'Content-Type': 'application/json' // ← penting
-    },
-    body: JSON.stringify(data)
-  })
-    .then(r => r.json())
-    .then(res => {
-      Swal.close();
-      if (res.success) {
-        Swal.fire("Berhasil", "Laporan berhasil disimpan!", "success");
-      } else {
-        Swal.fire("Gagal", res.message || "Terjadi kesalahan saat menyimpan", "error");
-      }
-    })
-    .catch(err => {
-      Swal.close();
-      console.error("Submit error:", err);
-      Swal.fire("Gagal", "Terjadi kesalahan saat mengirim laporan", "error");
+  try {
+    const res = await fetch(URL_GAS, {
+      method: "POST",
+      body: formData,
     });
+
+    const json = await res.json();
+    console.log("Response dari server:", json);
+
+    if (json.success) {
+      Swal.fire("Berhasil", "Laporan berhasil disimpan!", "success");
+    } else {
+      Swal.fire("Gagal", json.message || "Terjadi kesalahan saat menyimpan", "error");
+    }
+  } catch (err) {
+    console.error("Submit error:", err);
+    Swal.fire("Kesalahan", "Tidak dapat mengirim laporan", "error");
+  }
 }
 
 function logout() {
