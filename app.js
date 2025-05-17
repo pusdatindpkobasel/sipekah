@@ -82,16 +82,26 @@ async function submitLaporan() {
 
     if (buktiInput.files.length > 0) {
       const file = buktiInput.files[0];
-      const uploadForm = new FormData();
-uploadForm.append("action", "uploadFile");
-uploadForm.append("file", file);
-uploadForm.append("filename", `${currentUser.nama}_sesi${i}_${Date.now()}`);
-
+      const filename = `${currentUser.nama}_sesi${i}_${Date.now()}`;
+const resUpload = await fetch(`${URL_GAS}?action=uploadFile&filename=${encodeURIComponent(filename)}`, {
+  method: "POST",
+  body: file,
+  headers: {
+    "Content-Type": file.type,
+  },
+});
       try {
-        const resUpload = await fetch(URL_GAS, {
-          method: "POST",
-          body: uploadForm,
-        });
+        const filename = `nama_sesi${i}_${Date.now()}`;
+const resUpload = await fetch(`${URL_GAS}?action=uploadFile&filename=${encodeURIComponent(filename)}`, {
+  method: "POST",
+  body: file,
+  headers: {
+    "Content-Type": file.type,
+  },
+});
+const upload = await resUpload.json();
+formData.append(`bukti${i}`, upload.url || "");
+
         const upload = await resUpload.json();
         formData.append(`bukti${i}`, upload.url || "");
       } catch (e) {
