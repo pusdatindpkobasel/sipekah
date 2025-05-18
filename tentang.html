@@ -1,1 +1,42 @@
-a
+<!DOCTYPE html><html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tentang Aplikasi</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+  <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+    <div class="container-fluid">
+      <a class="navbar-brand" href="index.html">Laporan Kinerja</a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navMenu">
+        <ul class="navbar-nav ms-auto">
+          <li class="nav-item"><a class="nav-link" href="index.html">Dashboard</a></li>
+          <li class="nav-item"><a class="nav-link" href="profil.html">Profil Saya</a></li>
+          <li class="nav-item"><a class="nav-link" href="laporan.html">Laporan Saya</a></li>
+          <li class="nav-item"><a class="nav-link active" href="#">Tentang</a></li>
+          <li class="nav-item"><a class="nav-link text-warning" href="#" onclick="logout()">Logout</a></li>
+        </ul>
+      </div>
+    </div>
+  </nav>  <div class="container mt-5">
+    <h3 class="mb-4">Tentang Aplikasi</h3>
+    <p>Aplikasi ini dirancang untuk mempermudah pegawai dalam mengisi laporan kinerja harian, melihat data pribadi, serta memantau pencapaian dan aktivitas kerja mereka secara mandiri.</p>
+    <ul>
+      <li>Mendukung input laporan sesi kerja per hari.</li>
+      <li>Visualisasi data laporan secara interaktif.</li>
+      <li>Terhubung langsung ke Google Spreadsheet dan Drive.</li>
+      <li>Responsif untuk digunakan di berbagai perangkat.</li>
+    </ul>
+    <p>Silakan gunakan fitur <a href="saran.html">Saran & Masukan</a> untuk membantu pengembangan aplikasi lebih baik.</p>
+  </div>  <script>
+    if (!localStorage.getItem("user")) location.href = "login.html";
+    function logout() {
+      localStorage.removeItem("user");
+      location.href = "login.html";
+    }
+  </script>  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script></body>
+</html>
