@@ -228,15 +228,23 @@ function renderSesiForm() {
     `;
   }
 }
-// Fungsi untuk menampilkan kalender setelah login
 function renderCalendar() {
   // Ambil data laporan untuk nama pegawai yang login
   fetch(`${WEB_APP_URL}?action=getLaporan&nama=${userData.nama}`)
     .then(res => res.json())
     .then(data => {
+      console.log('Data yang diterima:', data);  // Cek format data yang diterima
+      
+      // Pastikan data adalah array sebelum memprosesnya
+      if (!Array.isArray(data)) {
+        return Swal.fire('Error', 'Data laporan tidak dalam format yang benar', 'error');
+      }
+
       // Extract tanggal laporan yang valid
       const datesWithReports = data.filter(item => item.sesi1 || item.sesi2 || item.sesi3 || item.sesi4 || item.sesi5 || item.sesi6 || item.sesi7)
                                     .map(item => item.timestamp);  // Ambil timestamp atau tanggal yang ada laporan
+
+      console.log('Tanggal laporan:', datesWithReports);  // Cek tanggal yang diterima
 
       // Konversi tanggal-tanggal tersebut ke format yang bisa dibaca oleh FullCalendar
       const formattedDates = datesWithReports.map(date => moment(date).format('YYYY-MM-DD'));
@@ -254,7 +262,6 @@ function renderCalendar() {
           backgroundColor: '#28a745', // Menandai dengan warna hijau
           borderColor: '#28a745'
         })),
-        // Menambahkan fitur lain seperti klik untuk melihat laporan, dll.
         eventClick: function(calEvent) {
           Swal.fire({
             icon: 'info',
@@ -266,6 +273,7 @@ function renderCalendar() {
     })
     .catch(err => {
       console.error('Error loading calendar events:', err);
+      Swal.fire('Error', 'Gagal memuat kalender', 'error');
     });
 }
 
