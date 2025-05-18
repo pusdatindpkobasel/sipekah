@@ -61,11 +61,12 @@
     </form>
 
     <!-- Form Wrapper -->
-    <div id="form-wrapper" style="display:none;">
+   <div id="form-wrapper" style="display:none;">
   <div class="row">
-    <!-- Card Info Pegawai -->
+    <!-- Kolom Kiri (Informasi Pegawai dan Kalender) -->
     <div class="col-md-6 mb-4">
-      <div class="card">
+      <!-- Card Info Pegawai -->
+      <div class="card mb-4">
         <div class="card-body">
           <h5 class="card-title mb-3">Informasi Pegawai</h5>
 
@@ -91,10 +92,8 @@
           </div>
         </div>
       </div>
-    </div>
 
-    <!-- Card Kalender -->
-    <div class="col-md-6 mb-4">
+      <!-- Card Kalender -->
       <div class="card">
         <div class="card-body">
           <h5 class="card-title mb-3">Kalender Laporan</h5>
@@ -102,18 +101,15 @@
         </div>
       </div>
     </div>
+
+    <!-- Kolom Kanan (Form Sesi dan Status) -->
+    <div class="col-md-6 mb-4">
+      <div id="sesi-status"></div>
+      <div id="sesi-form"></div>
+    </div>
   </div>
 </div>
 
-
-        <!-- Form Sesi dan Status -->
-        <div class="col-md-6">
-          <div id="sesi-status"></div>
-          <div id="sesi-form"></div>
-        </div>
-      </div>
-    </div>
-  </div>
 
   <script src="script.js"></script>
 </body>
