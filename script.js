@@ -2,7 +2,7 @@ const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbxS9glVdvcS0yfMOeEd
 
 let pegawaiList = [], userData = {}, sesiStatus = {};
 
-// Fungsi callback untuk JSONP, akan dipanggil dari server Google Apps Script
+// Callback JSONP dari Google Apps Script
 function handlePegawai(data) {
   pegawaiList = data;
   const namaSelect = document.getElementById("nama");
@@ -15,30 +15,29 @@ function handlePegawai(data) {
   });
 }
 
-// Inisialisasi saat halaman load
+// Inisialisasi halaman
 window.onload = () => {
-  // Load data pegawai via JSONP (script injection)
+  // Load data pegawai via JSONP
   const script = document.createElement('script');
   script.src = `${WEB_APP_URL}?action=getPegawai&callback=handlePegawai`;
   script.onerror = () => Swal.fire('Error', 'Gagal memuat data pegawai', 'error');
   document.body.appendChild(script);
 
-  // Cek apakah ada user yang sudah login (data tersimpan di localStorage)
+  // Cek data user di localStorage
   const savedUser = localStorage.getItem('userData');
   if (savedUser) {
     userData = JSON.parse(savedUser);
 
-    // Tunggu sampai data pegawai sudah siap (karena JSONP async)
     const intervalId = setInterval(() => {
       if (pegawaiList.length > 0) {
         clearInterval(intervalId);
 
-        // Set dropdown nama, disable agar tidak bisa ganti
+        // Set dropdown dan disable
         const namaSelect = document.getElementById("nama");
         namaSelect.value = userData.nama;
         namaSelect.disabled = true;
 
-        // Disable input PIN
+        // Disable PIN
         document.getElementById("pin").disabled = true;
 
         // Tampilkan info user
@@ -48,7 +47,7 @@ window.onload = () => {
         document.getElementById("golongan").textContent = userData.golongan;
         document.getElementById("jabatan").textContent = userData.jabatan;
 
-        // Tampilkan form sesi kerja
+        // Tampilkan form sesi
         document.getElementById("form-wrapper").style.display = "block";
 
         setLogoutButton();
@@ -57,8 +56,8 @@ window.onload = () => {
     }, 100);
   }
 
-  // Event listener agar bisa submit login dengan Enter di input PIN
-  document.getElementById('pin').addEventListener('keydown', function(e) {
+  // Enter key login
+  document.getElementById('pin').addEventListener('keydown', e => {
     if (e.key === 'Enter') {
       e.preventDefault();
       login();
@@ -66,7 +65,7 @@ window.onload = () => {
   });
 };
 
-// Fungsi login
+// Login
 function login() {
   const nama = document.getElementById("nama").value;
   const pin = document.getElementById("pin").value;
@@ -76,16 +75,12 @@ function login() {
   }
 
   userData = {
-    nama: data[0],
-    nip: data[2],
-    subbid: data[3],
-    status: data[4],
-    golongan: data[5],
-    jabatan: data[6]
+    nama: data[0], nip: data[2], subbid: data[3],
+    status: data[4], golongan: data[5], jabatan: data[6]
   };
   localStorage.setItem('userData', JSON.stringify(userData));
 
-  // Update UI info pegawai
+  // Update UI
   document.getElementById("nip").textContent = userData.nip;
   document.getElementById("subbid").textContent = userData.subbid;
   document.getElementById("status").textContent = userData.status;
@@ -93,7 +88,6 @@ function login() {
   document.getElementById("jabatan").textContent = userData.jabatan;
   document.getElementById("form-wrapper").style.display = "block";
 
-  // Disable login form supaya user tidak bisa ganti login sampai logout
   document.getElementById("nama").disabled = true;
   document.getElementById("pin").disabled = true;
 
@@ -102,13 +96,12 @@ function login() {
   loadSesiStatus();
 }
 
-// Fungsi logout
+// Logout
 function logout() {
   localStorage.removeItem('userData');
   userData = {};
   sesiStatus = {};
 
-  // Enable login form kembali
   document.getElementById("nama").disabled = false;
   document.getElementById("pin").disabled = false;
   document.getElementById("pin").value = "";
@@ -129,7 +122,7 @@ function logout() {
   loginBtn.onclick = login;
 }
 
-// Set tombol logout (setelah login berhasil)
+// Set tombol logout
 function setLogoutButton() {
   const loginBtn = document.getElementById("login-button");
   loginBtn.innerHTML = `
@@ -146,7 +139,7 @@ function setLogoutButton() {
   loginBtn.onclick = logout;
 }
 
-// Fungsi menampilkan notifikasi sisa waktu pengisian
+// Notifikasi sisa waktu
 function showRemainingTime() {
   const now = new Date();
   const closeTime = new Date();
@@ -172,7 +165,7 @@ function showRemainingTime() {
   });
 }
 
-// Fungsi load status sesi kerja dari server
+// Load sesi status
 function loadSesiStatus() {
   fetch(`${WEB_APP_URL}?action=getLaporan&nama=${userData.nama}`)
     .then(res => res.json())
@@ -182,7 +175,7 @@ function loadSesiStatus() {
     });
 }
 
-// Fungsi menampilkan jam sesi kerja (for label)
+// Label jam sesi
 function getJamSesi(i) {
   const jam = [
     "(07.30–08.30)", "(08.30–09.30)", "(09.30–10.30)", "(10.30–12.00)",
@@ -191,7 +184,7 @@ function getJamSesi(i) {
   return jam[i - 1] || "";
 }
 
-// Fungsi render form sesi kerja per sesi
+// Render form sesi
 function renderSesiForm() {
   const wrapper = document.getElementById("sesi-form");
   wrapper.innerHTML = "";
@@ -206,17 +199,17 @@ function renderSesiForm() {
     div.innerHTML = `
       <div class="card-body">
         <h5 class="card-title">Sesi ${i} ${getJamSesi(i)}</h5>
-        ${sudah ? `
-          <div class="alert alert-success p-2">
-            ✅ Sudah dikirim: ${sudah}
-            ${bukti ? `<br><a href="${bukti}" target="_blank">📎 Lihat Bukti</a>` : ""}
-            <br><small class="text-muted">Isian sesi tidak bisa diedit ulang.</small>
-          </div>
-        ` : `
-          <textarea id="sesi${i}" class="form-control mb-2" placeholder="Uraian pekerjaan sesi ${i}"></textarea>
-          <input type="file" id="file${i}" class="form-control mb-2" accept=".jpg,.jpeg,.png,.pdf" />
-          <button class="btn btn-success" onclick="submitSesi(${i})">Kirim Sesi ${i}</button>
-        `}
+        ${
+          sudah
+            ? `<div class="alert alert-success p-2">
+                ✅ Sudah dikirim: ${sudah}
+                ${bukti ? `<br><a href="${bukti}" target="_blank">📎 Lihat Bukti</a>` : ""}
+                <br><small class="text-muted">Isian sesi tidak bisa diedit ulang.</small>
+              </div>`
+            : `<textarea id="sesi${i}" class="form-control mb-2" placeholder="Uraian pekerjaan sesi ${i}"></textarea>
+               <input type="file" id="file${i}" class="form-control mb-2" accept=".jpg,.jpeg,.png,.pdf" />
+               <button class="btn btn-success" onclick="submitSesi(${i})">Kirim Sesi ${i}</button>`
+        }
       </div>
     `;
     if (sudah) totalIsi++;
@@ -234,7 +227,7 @@ function renderSesiForm() {
   }
 }
 
-// Fungsi submit sesi dengan upload file dan data form
+// Submit sesi (upload file + form)
 async function submitSesi(i) {
   const pekerjaan = document.getElementById(`sesi${i}`).value.trim();
   const file = document.getElementById(`file${i}`).files[0];
