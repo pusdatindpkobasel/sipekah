@@ -2,44 +2,34 @@
 <html lang="id">
 <head>
   <meta charset="UTF-8" />
-  <title>Dummy JSONP Dropdown</title>
+  <title>Dummy Fetch JSON Dropdown</title>
 </head>
 <body>
   <select id="nama"></select>
 
   <script>
-    // Fungsi callback JSONP
-    function handlePegawai(data) {
-      console.log("Data diterima via JSONP:", data);
-      const namaSelect = document.getElementById("nama");
-      namaSelect.innerHTML = '<option value="">Pilih Nama</option>';
-      data.forEach(p => {
-        const opt = document.createElement("option");
-        opt.value = p[0];
-        opt.textContent = p[0];
-        namaSelect.appendChild(opt);
-      });
-    }
+    // Dummy endpoint JSON (gunakan endpoint server kamu nanti)
+    const DUMMY_JSON_URL = "https://api.npoint.io/93bed93a99df4c91044e";
 
-    // Simulasi load JSONP dengan script tag dinamis
-    function loadJSONP() {
-      const script = document.createElement("script");
-      // URL ini bisa diganti dengan server kamu yg support JSONP
-      // Sekarang kita buat inline JSONP dummy via data URI
-      const data = [
-        ["FIRMANSYAH, SH., MM", "12345", "Subbid 1", "Status A", "Golongan IV", "Jabatan X", "1234"],
-        ["ANITA SARI", "67890", "Subbid 2", "Status B", "Golongan III", "Jabatan Y", "4321"]
-      ];
-      // encode data sebagai string JS yg memanggil handlePegawai
-      const jsonp = `handlePegawai(${JSON.stringify(data)});`;
-      // Buat data URI dengan JavaScript code di atas
-      const dataUri = "data:text/javascript;charset=utf-8," + encodeURIComponent(jsonp);
-      script.src = dataUri;
-      document.body.appendChild(script);
+    function loadJSON() {
+      fetch(DUMMY_JSON_URL)
+        .then(res => res.json())
+        .then(data => {
+          console.log("Data diterima via fetch JSON:", data);
+          const namaSelect = document.getElementById("nama");
+          namaSelect.innerHTML = '<option value="">Pilih Nama</option>';
+          data.forEach(p => {
+            const opt = document.createElement("option");
+            opt.value = p[0];
+            opt.textContent = p[0];
+            namaSelect.appendChild(opt);
+          });
+        })
+        .catch(err => console.error("Gagal fetch data:", err));
     }
 
     window.onload = () => {
-      loadJSONP();
+      loadJSON();
     }
   </script>
 </body>
