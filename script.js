@@ -94,6 +94,8 @@ function login() {
   setLogoutButton();
   showRemainingTime();
   loadSesiStatus();
+  // Render Kalender setelah login
+  renderCalendar();  // Panggil renderCalendar setelah login berhasil
 }
 
 // Logout
@@ -225,6 +227,46 @@ function renderSesiForm() {
       </div>
     `;
   }
+}
+// Fungsi untuk menampilkan kalender setelah login
+function renderCalendar() {
+  // Ambil data laporan untuk nama pegawai yang login
+  fetch(`${WEB_APP_URL}?action=getLaporan&nama=${userData.nama}`)
+    .then(res => res.json())
+    .then(data => {
+      // Extract tanggal laporan yang valid
+      const datesWithReports = data.filter(item => item.sesi1 || item.sesi2 || item.sesi3 || item.sesi4 || item.sesi5 || item.sesi6 || item.sesi7)
+                                    .map(item => item.timestamp);  // Ambil timestamp atau tanggal yang ada laporan
+
+      // Konversi tanggal-tanggal tersebut ke format yang bisa dibaca oleh FullCalendar
+      const formattedDates = datesWithReports.map(date => moment(date).format('YYYY-MM-DD'));
+
+      // Inisialisasi FullCalendar
+      $('#calendar').fullCalendar({
+        header: {
+          left: 'prev,next today',
+          center: 'title',
+          right: 'month,agendaWeek,agendaDay'
+        },
+        events: formattedDates.map(date => ({
+          title: 'Laporan Tersedia',
+          start: date,
+          backgroundColor: '#28a745', // Menandai dengan warna hijau
+          borderColor: '#28a745'
+        })),
+        // Menambahkan fitur lain seperti klik untuk melihat laporan, dll.
+        eventClick: function(calEvent) {
+          Swal.fire({
+            icon: 'info',
+            title: 'Laporan Tersedia',
+            text: `Laporan tersedia pada tanggal: ${calEvent.start.format('LL')}`
+          });
+        }
+      });
+    })
+    .catch(err => {
+      console.error('Error loading calendar events:', err);
+    });
 }
 
 // Submit sesi (upload file + form)
