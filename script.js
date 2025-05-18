@@ -42,7 +42,7 @@ window.onload = () => {
   
       }
     }, 100);
-  } 
+  }; 
 
   // Listener enter di input PIN
   document.getElementById('pin').addEventListener('keydown', function(e) {
