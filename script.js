@@ -56,6 +56,7 @@ window.onload = () => {
 };
 
 function handlePegawai(data) {
+  console.log("handlePegawai dipanggil dengan data:", data);
   pegawaiList = data;
   const namaSelect = document.getElementById("nama");
   namaSelect.innerHTML = '<option value="">Pilih Nama</option>';
