@@ -25,17 +25,23 @@
 </head>
 <body>
   <div class="container py-5">
-    <!-- Header dengan Judul dan Deskripsi Panduan -->
+    <!-- Header -->
     <header class="text-center mb-5">
       <h1 class="display-4">SiPeKaH</h1>
       <p class="lead">Sistem Pelaporan Kinerja Harian Pegawai</p>
     </header>
 
-   <!-- Login + Dashboard -->
-    <form onsubmit="login(); return false;" class="d-flex flex-wrap gap-2 justify-content-center justify-content-sm-between align-items-center mb-4">
-      <select id="nama" class="form-select" style="min-width: 180px" required></select>
-      <input type="password" id="pin" class="form-control" placeholder="PIN" style="min-width: 100px" required />
-      <div class="d-flex gap-2">
+    <!-- Login + Dashboard -->
+    <form onsubmit="login(); return false;" class="d-flex flex-wrap gap-2 align-items-center mb-4">
+
+      <!-- Nama + PIN (full width on mobile, horizontal on desktop) -->
+      <div class="d-flex flex-column flex-sm-row gap-2 flex-grow-1">
+        <select id="nama" class="form-select flex-grow-1" required></select>
+        <input type="password" id="pin" class="form-control flex-grow-1" placeholder="PIN" required />
+      </div>
+
+      <!-- Tombol Login & Dashboard -->
+      <div class="d-flex gap-2 flex-shrink-0 mt-2 mt-sm-0">
         <button type="submit" class="btn btn-dark d-flex align-items-center gap-1" id="login-button">
           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-shield-lock" viewBox="0 0 16 16">
             <path d="M5.5 8a1.5 1.5 0 1 1 3 0v1.086a1.5 1.5 0 1 1-3 0V8zm1.5-3a1 1 0 0 0-1 1v1.086a2.5 2.5 0 1 0 2 0V6a1 1 0 0 0-1-1z"/>
@@ -54,7 +60,7 @@
       </div>
     </form>
 
-    <!-- Form Wrapper (tampil setelah login) -->
+    <!-- Form Wrapper -->
     <div id="form-wrapper" style="display:none;">
       <div class="row">
         <!-- Card Info Pegawai -->
