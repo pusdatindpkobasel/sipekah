@@ -228,40 +228,36 @@ function renderSesiForm() {
     `;
   }
 }
+// Fungsi render kalender FullCalendar dengan data laporan filtered by user
 function renderCalendar() {
-  // Ambil data laporan untuk nama pegawai yang login
-  fetch(`${WEB_APP_URL}?action=getLaporan&nama=${userData.nama}`)
+  fetch(`${WEB_APP_URL}?action=getAllLaporan`)
     .then(res => res.json())
     .then(data => {
-      console.log('Data yang diterima:', data);  // Cek format data yang diterima
-      
-      // Pastikan data adalah array sebelum memprosesnya
-      if (!Array.isArray(data)) {
-        return Swal.fire('Error', 'Data laporan tidak dalam format yang benar', 'error');
+      // Filter data laporan sesuai user yang login
+      const filtered = data.filter(item => item.nama === userData.nama);
+
+      // Buat event calendar
+      const events = filtered.map(item => ({
+        title: "Laporan Tersedia",
+        start: new Date(item.timestamp),
+        allDay: true,
+        backgroundColor: '#28a745',
+        borderColor: '#28a745'
+      }));
+
+      // Hapus kalender lama jika sudah ada
+      if ($('#calendar').fullCalendar) {
+        $('#calendar').fullCalendar('destroy');
       }
-
-      // Extract tanggal laporan yang valid
-      const datesWithReports = data.filter(item => item.sesi1 || item.sesi2 || item.sesi3 || item.sesi4 || item.sesi5 || item.sesi6 || item.sesi7)
-                                    .map(item => item.timestamp);  // Ambil timestamp atau tanggal yang ada laporan
-
-      console.log('Tanggal laporan:', datesWithReports);  // Cek tanggal yang diterima
-
-      // Konversi tanggal-tanggal tersebut ke format yang bisa dibaca oleh FullCalendar
-      const formattedDates = datesWithReports.map(date => moment(date).format('YYYY-MM-DD'));
 
       // Inisialisasi FullCalendar
       $('#calendar').fullCalendar({
         header: {
           left: 'prev,next today',
           center: 'title',
-          right: 'month,agendaWeek,agendaDay'
+          right: 'month'
         },
-        events: formattedDates.map(date => ({
-          title: 'Laporan Tersedia',
-          start: date,
-          backgroundColor: '#28a745', // Menandai dengan warna hijau
-          borderColor: '#28a745'
-        })),
+        events: events,
         eventClick: function(calEvent) {
           Swal.fire({
             icon: 'info',
@@ -273,7 +269,6 @@ function renderCalendar() {
     })
     .catch(err => {
       console.error('Error loading calendar events:', err);
-      Swal.fire('Error', 'Gagal memuat kalender', 'error');
     });
 }
 
