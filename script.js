@@ -1,4 +1,4 @@
-const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbxS9glVdvcS0yfMOeEdYxiTgjLbwc2F_TRwoxGG1dYh_3cAPqzFWnHUOOiLSdFgMZR3rA/exec'; 
+const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbxS9glVdvcS0yfMOeEdYxiTgjLbwc2F_TRwoxGG1dYh_3cAPqzFWnHUOOiLSdFgMZR3rA/exec';  
 
 let pegawaiList = [], userData = {}, sesiStatus = {};
 
@@ -8,6 +8,44 @@ window.onload = () => {
     .then(eval)
     .catch(err => Swal.fire('Error', 'Gagal memuat data pegawai', 'error'));
 
+  // Cek userData di localStorage
+  const savedUser = localStorage.getItem('userData');
+  if (savedUser) {
+    userData = JSON.parse(savedUser);
+
+    // Tunggu sampai pegawaiList sudah terisi oleh handlePegawai
+    const intervalId = setInterval(() => {
+      if (pegawaiList.length > 0) {
+        clearInterval(intervalId);
+
+        // Set dropdown nama sesuai user yang login
+        const namaSelect = document.getElementById("nama");
+        namaSelect.value = userData.nama;
+        namaSelect.disabled = true;
+
+        // Disable input PIN
+        document.getElementById("pin").disabled = true;
+
+        // Set info pegawai di UI
+        document.getElementById("nip").textContent = userData.nip;
+        document.getElementById("subbid").textContent = userData.subbid;
+        document.getElementById("status").textContent = userData.status;
+        document.getElementById("golongan").textContent = userData.golongan;
+        document.getElementById("jabatan").textContent = userData.jabatan;
+
+        // Tampilkan form
+        document.getElementById("form-wrapper").style.display = "block";
+
+        setLogoutButton();
+        loadSesiStatus();
+
+        enableDashboardButton();
+      }
+    }, 100);
+  } else {
+    disableDashboardButton();
+  }
+
   // Listener enter di input PIN
   document.getElementById('pin').addEventListener('keydown', function(e) {
     if (e.key === 'Enter') {
@@ -15,63 +53,13 @@ window.onload = () => {
       login();
     }
   });
-
-  // Cek userData di localStorage
-  const savedUser = localStorage.getItem('userData');
-  if (savedUser) {
-    userData = JSON.parse(savedUser);
-
-    // Tunggu pegawaiList terisi
-    const intervalId = setInterval(() => {
-      if (pegawaiList.length > 0) {
-        clearInterval(intervalId);
-
-        populateDropdown();
-
-        // Setelah dropdown terisi, set value dan disable input
-        const namaSelect = document.getElementById("nama");
-        namaSelect.value = userData.nama;
-
-        // Kalau nama tidak ketemu di dropdown, reset
-        if (namaSelect.value !== userData.nama) {
-          console.warn(`User ${userData.nama} tidak ditemukan di dropdown!`);
-          namaSelect.value = "";
-          userData = {};
-          localStorage.removeItem('userData');
-          return;
-        }
-
-        namaSelect.disabled = true;
-        document.getElementById("pin").disabled = true;
-
-        // Set info pegawai
-        document.getElementById("nip").textContent = userData.nip;
-        document.getElementById("subbid").textContent = userData.subbid;
-        document.getElementById("status").textContent = userData.status;
-        document.getElementById("golongan").textContent = userData.golongan;
-        document.getElementById("jabatan").textContent = userData.jabatan;
-
-        document.getElementById("form-wrapper").style.display = "block";
-
-        setLogoutButton();
-        loadSesiStatus();
-
-        document.getElementById("dashboard-button").style.display = "inline-flex";
-      }
-    }, 100);
-  }
 };
 
 function handlePegawai(data) {
-  console.log("handlePegawai dipanggil dengan data:", data);
   pegawaiList = data;
-  populateDropdown();
-}
-
-function populateDropdown() {
   const namaSelect = document.getElementById("nama");
   namaSelect.innerHTML = '<option value="">Pilih Nama</option>';
-  pegawaiList.forEach(p => {
+  data.forEach(p => {
     const opt = document.createElement("option");
     opt.value = p[0];
     opt.textContent = p[0];
@@ -79,10 +67,51 @@ function populateDropdown() {
   });
 }
 
-// Fungsi login, logout, setLogoutButton, loadSesiStatus dll tetap sama seperti yang kamu punya
-// Tapi pastikan pada login() ada panggilan populateDropdown() jika kamu mau reset dropdown setelah logout
+function showRemainingTime() {
+  const now = new Date();
+  const closeTime = new Date();
+  closeTime.setHours(22, 0, 0, 0);
 
-// Contoh login function (modifikasi sedikit untuk keamanan dropdown):
+  if (now >= closeTime) {
+    Swal.fire({
+      icon: 'info',
+      title: 'Waktu Pengisian Telah Berakhir',
+      text: 'Form pengisian sudah ditutup sampai jam 8 pagi besok.'
+    });
+    return;
+  }
+
+  const diffMs = closeTime - now;
+  const diffH = Math.floor(diffMs / 3600000);
+  const diffM = Math.floor((diffMs % 3600000) / 60000);
+
+  Swal.fire({
+    icon: 'info',
+    title: 'Sisa Waktu Pengisian',
+    text: `Anda memiliki waktu ${diffH} jam ${diffM} menit untuk mengisi form hari ini.`
+  });
+}
+
+function enableDashboardButton() {
+  const btn = document.getElementById("dashboard-button");
+  if (btn) {
+    btn.style.display = "inline-flex"; 
+    btn.setAttribute("aria-disabled", "false");
+    btn.removeAttribute("tabindex");
+    btn.classList.remove("disabled");
+  }
+}
+
+function disableDashboardButton() {
+  const btn = document.getElementById("dashboard-button");
+  if (btn) {
+    btn.style.display = "inline-flex"; // tetap tampil tapi disable klik
+    btn.setAttribute("aria-disabled", "true");
+    btn.setAttribute("tabindex", "-1");
+    btn.classList.add("disabled");
+  }
+}
+
 function login() {
   const nama = document.getElementById("nama").value;
   const pin = document.getElementById("pin").value;
@@ -101,11 +130,12 @@ function login() {
   document.getElementById("golongan").textContent = userData.golongan;
   document.getElementById("jabatan").textContent = userData.jabatan;
   document.getElementById("form-wrapper").style.display = "block";
-
+  
   setLogoutButton();
   document.getElementById("nama").disabled = true;
   document.getElementById("pin").disabled = true;
-  document.getElementById("dashboard-button").style.display = "inline-flex";
+
+  enableDashboardButton();
 
   showRemainingTime();
   loadSesiStatus();
@@ -114,16 +144,10 @@ function login() {
 function logout() {
   localStorage.removeItem('userData');
 
-  const namaSelect = document.getElementById("nama");
-  populateDropdown();
-  namaSelect.disabled = false;
-  namaSelect.value = "";
-
+  document.getElementById("nama").disabled = false;
   document.getElementById("pin").disabled = false;
   document.getElementById("pin").value = "";
   document.getElementById("form-wrapper").style.display = "none";
-  document.getElementById("dashboard-button").style.display = "none";
-
   userData = {};
   sesiStatus = {};
 
@@ -138,6 +162,8 @@ function logout() {
   loginBtn.classList.remove("btn-danger");
   loginBtn.classList.add("btn-dark");
   loginBtn.onclick = login;
+
+  disableDashboardButton();
 }
 
 function setLogoutButton() {
