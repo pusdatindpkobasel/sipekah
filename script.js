@@ -233,6 +233,9 @@ function renderCalendar() {
   fetch(`${WEB_APP_URL}?action=getAllLaporan`)
     .then(res => res.json())
     .then(data => {
+       console.log(data); // Pastikan data berupa array objek dengan properti timestamp dan nama
+  })
+  .catch(console.error);
       // Filter data laporan sesuai user yang login
       const filtered = data.filter(item => item.nama === userData.nama);
 
