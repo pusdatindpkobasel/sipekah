@@ -39,12 +39,10 @@ window.onload = () => {
         setLogoutButton();
         loadSesiStatus();
 
-        enableDashboardButton();
+  
       }
     }, 100);
-  } else {
-    disableDashboardButton();
-  }
+  } 
 
   // Listener enter di input PIN
   document.getElementById('pin').addEventListener('keydown', function(e) {
@@ -92,25 +90,6 @@ function showRemainingTime() {
   });
 }
 
-function enableDashboardButton() {
-  const btn = document.getElementById("dashboard-button");
-  if (btn) {
-    btn.style.display = "inline-flex"; 
-    btn.setAttribute("aria-disabled", "false");
-    btn.removeAttribute("tabindex");
-    btn.classList.remove("disabled");
-  }
-}
-
-function disableDashboardButton() {
-  const btn = document.getElementById("dashboard-button");
-  if (btn) {
-    btn.style.display = "inline-flex"; // tetap tampil tapi disable klik
-    btn.setAttribute("aria-disabled", "true");
-    btn.setAttribute("tabindex", "-1");
-    btn.classList.add("disabled");
-  }
-}
 
 function login() {
   const nama = document.getElementById("nama").value;
@@ -134,8 +113,6 @@ function login() {
   setLogoutButton();
   document.getElementById("nama").disabled = true;
   document.getElementById("pin").disabled = true;
-
-  enableDashboardButton();
 
   showRemainingTime();
   loadSesiStatus();
@@ -162,8 +139,6 @@ function logout() {
   loginBtn.classList.remove("btn-danger");
   loginBtn.classList.add("btn-dark");
   loginBtn.onclick = login;
-
-  disableDashboardButton();
 }
 
 function setLogoutButton() {
