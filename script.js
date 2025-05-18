@@ -7,52 +7,6 @@ window.onload = () => {
     .then(res => res.text())
     .then(eval)
     .catch(err => Swal.fire('Error', 'Gagal memuat data pegawai', 'error'));
-
-  // Cek userData di localStorage
-  const savedUser = localStorage.getItem('userData');
-  if (savedUser) {
-    userData = JSON.parse(savedUser);
-
-    // Tunggu sampai pegawaiList sudah terisi oleh handlePegawai
-    const intervalId = setInterval(() => {
-      if (pegawaiList.length > 0) {
-        clearInterval(intervalId);
-
-        // Set dropdown nama sesuai user yang login
-        const namaSelect = document.getElementById("nama");
-        namaSelect.value = userData.nama;
-        namaSelect.disabled = true;
-
-        // Disable input PIN
-        document.getElementById("pin").disabled = true;
-
-        // Set info pegawai di UI
-        document.getElementById("nip").textContent = userData.nip;
-        document.getElementById("subbid").textContent = userData.subbid;
-        document.getElementById("status").textContent = userData.status;
-        document.getElementById("golongan").textContent = userData.golongan;
-        document.getElementById("jabatan").textContent = userData.jabatan;
-
-        // Tampilkan form
-        document.getElementById("form-wrapper").style.display = "block";
-
-        setLogoutButton();
-        loadSesiStatus();
-
-        enableDashboardButton();
-      }
-    }, 100);
-  } else {
-    disableDashboardButton();
-  }
-
-  // Listener enter di input PIN
-  document.getElementById('pin').addEventListener('keydown', function(e) {
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      login();
-    }
-  });
 };
 
 function handlePegawai(data) {
