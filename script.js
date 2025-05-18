@@ -95,7 +95,7 @@ function login() {
   showRemainingTime();
   loadSesiStatus();
   // Render Kalender setelah login
-  renderCalendar();  // Panggil renderCalendar setelah login berhasil
+ renderCalendar();  // Panggil renderCalendar setelah login berhasil
 }
 
 // Logout
