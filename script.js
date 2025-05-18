@@ -19,9 +19,9 @@ function handlePegawai(data) {
 window.onload = () => {
   // Load data pegawai via JSONP
   const script = document.createElement('script');
-  script.src = `${WEB_APP_URL}?action=getPegawai&callback=handlePegawai`;
-  script.onerror = () => Swal.fire('Error', 'Gagal memuat data pegawai', 'error');
-  document.body.appendChild(script);
+script.src = `${WEB_APP_URL}?action=getPegawai&callback=handlePegawai`;
+script.onerror = () => Swal.fire('Error', 'Gagal memuat data pegawai', 'error');
+document.body.appendChild(script);
 
   // Cek data user di localStorage
   const savedUser = localStorage.getItem('userData');
