@@ -39,11 +39,11 @@ window.onload = () => {
         setLogoutButton();
         loadSesiStatus();
 
-        document.getElementById("dashboard-button").style.display = "inline-flex";
+        enableDashboardButton();
       }
     }, 100);
   } else {
-    document.getElementById("dashboard-button").style.display = "none";
+    disableDashboardButton();
   }
 
   // Listener enter di input PIN
@@ -56,7 +56,6 @@ window.onload = () => {
 };
 
 function handlePegawai(data) {
-  console.log("handlePegawai dipanggil dengan data:", data);
   pegawaiList = data;
   const namaSelect = document.getElementById("nama");
   namaSelect.innerHTML = '<option value="">Pilih Nama</option>';
@@ -67,10 +66,11 @@ function handlePegawai(data) {
     namaSelect.appendChild(opt);
   });
 }
+
 function showRemainingTime() {
   const now = new Date();
   const closeTime = new Date();
-  closeTime.setHours(22, 0, 0, 0); // jam 22:00:00
+  closeTime.setHours(22, 0, 0, 0);
 
   if (now >= closeTime) {
     Swal.fire({
@@ -78,13 +78,12 @@ function showRemainingTime() {
       title: 'Waktu Pengisian Telah Berakhir',
       text: 'Form pengisian sudah ditutup sampai jam 8 pagi besok.'
     });
-    // kamu juga bisa disable form di sini kalau mau
     return;
   }
 
   const diffMs = closeTime - now;
-  const diffH = Math.floor(diffMs / 3600000); // jam
-  const diffM = Math.floor((diffMs % 3600000) / 60000); // menit
+  const diffH = Math.floor(diffMs / 3600000);
+  const diffM = Math.floor((diffMs % 3600000) / 60000);
 
   Swal.fire({
     icon: 'info',
@@ -92,19 +91,24 @@ function showRemainingTime() {
     text: `Anda memiliki waktu ${diffH} jam ${diffM} menit untuk mengisi form hari ini.`
   });
 }
-function showDashboardButton() {
+
+function enableDashboardButton() {
   const btn = document.getElementById("dashboard-button");
   if (btn) {
-    btn.classList.remove("d-none");
-    btn.classList.add("d-inline-flex");
+    btn.style.display = "inline-flex"; 
+    btn.setAttribute("aria-disabled", "false");
+    btn.removeAttribute("tabindex");
+    btn.classList.remove("disabled");
   }
 }
 
-function hideDashboardButton() {
+function disableDashboardButton() {
   const btn = document.getElementById("dashboard-button");
   if (btn) {
-    btn.classList.add("d-none");
-    btn.classList.remove("d-inline-flex");
+    btn.style.display = "inline-flex"; // tetap tampil tapi disable klik
+    btn.setAttribute("aria-disabled", "true");
+    btn.setAttribute("tabindex", "-1");
+    btn.classList.add("disabled");
   }
 }
 
@@ -130,14 +134,16 @@ function login() {
   setLogoutButton();
   document.getElementById("nama").disabled = true;
   document.getElementById("pin").disabled = true;
- document.getElementById("dashboard-button").style.display = "inline-flex";
-  showRemainingTime(); // Panggil fungsi notifikasi sisa waktu di sini
+
+  enableDashboardButton();
+
+  showRemainingTime();
   loadSesiStatus();
 }
 
 function logout() {
-   localStorage.removeItem('userData');
-   // Enable form login kembali saat logout
+  localStorage.removeItem('userData');
+
   document.getElementById("nama").disabled = false;
   document.getElementById("pin").disabled = false;
   document.getElementById("pin").value = "";
@@ -156,6 +162,8 @@ function logout() {
   loginBtn.classList.remove("btn-danger");
   loginBtn.classList.add("btn-dark");
   loginBtn.onclick = login;
+
+  disableDashboardButton();
 }
 
 function setLogoutButton() {
@@ -171,7 +179,6 @@ function setLogoutButton() {
   loginBtn.classList.remove("btn-dark");
   loginBtn.classList.add("btn-danger");
   loginBtn.onclick = logout;
-   document.getElementById("dashboard-button").style.display = "none";
 }
 
 function loadSesiStatus() {
@@ -224,11 +231,13 @@ function renderSesiForm() {
 
   // Indikator kelengkapan sesi
   const statusEl = document.getElementById("sesi-status");
-  statusEl.innerHTML = `
-    <div class="alert alert-info text-center">
-      🔄 ${totalIsi} dari 7 sesi telah diisi
-    </div>
-  `;
+  if (statusEl) {
+    statusEl.innerHTML = `
+      <div class="alert alert-info text-center">
+        🔄 ${totalIsi} dari 7 sesi telah diisi
+      </div>
+    `;
+  }
 }
 
 async function submitSesi(i) {
@@ -245,11 +254,14 @@ async function submitSesi(i) {
   if (!allowedExt.includes(ext)) {
     return Swal.fire("File tidak diizinkan", "Hanya PDF, JPG, JPEG, PNG", "warning");
   }
-  const submitBtn = document.querySelector(`#submit-btn-${i}`); // pastikan ada id untuk tombol
-  submitBtn.disabled = true;
+  // Note: submit button dengan id `submit-btn-{i}` belum ada di HTML, pastikan tambahkan id jika ingin disable saat kirim
+  const submitBtn = document.querySelector(`#submit-btn-${i}`);
+  if(submitBtn) submitBtn.disabled = true;
+
   Swal.fire({ title: "Mengirim...", didOpen: () => Swal.showLoading() });
-  submitBtn.disabled = false;
-  
+
+  if(submitBtn) submitBtn.disabled = false;
+
   const reader = new FileReader();
   reader.onload = async function () {
     const base64 = reader.result;
@@ -301,4 +313,3 @@ async function submitSesi(i) {
   };
   reader.readAsDataURL(file);
 }
-
