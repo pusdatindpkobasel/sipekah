@@ -25,36 +25,49 @@ window.onload = () => {
 
   // Cek apakah ada user yang sudah login (data tersimpan di localStorage)
   const savedUser = localStorage.getItem('userData');
-  if (savedUser) {
-    userData = JSON.parse(savedUser);
+  const loginTimeStr = localStorage.getItem('loginTime');
 
-    // Tunggu sampai data pegawai sudah siap (karena JSONP async)
-    const intervalId = setInterval(() => {
-      if (pegawaiList.length > 0) {
-        clearInterval(intervalId);
+  if (savedUser && loginTimeStr) {
+    const loginTime = new Date(loginTimeStr);
+    const now = new Date();
+    const diffMinutes = (now - loginTime) / 1000 / 60; // selisih menit
 
-        // Set dropdown nama, disable agar tidak bisa ganti
-        const namaSelect = document.getElementById("nama");
-        namaSelect.value = userData.nama;
-        namaSelect.disabled = true;
+    if (diffMinutes > 60) { // waktu expired 60 menit (bisa disesuaikan)
+      // Clear localStorage jika sudah expired
+      localStorage.removeItem('userData');
+      localStorage.removeItem('loginTime');
+      console.log('Login expired, localStorage cleared');
+    } else {
+      userData = JSON.parse(savedUser);
 
-        // Disable input PIN
-        document.getElementById("pin").disabled = true;
+      // Tunggu sampai data pegawai sudah siap (karena JSONP async)
+      const intervalId = setInterval(() => {
+        if (pegawaiList.length > 0) {
+          clearInterval(intervalId);
 
-        // Tampilkan info user
-        document.getElementById("nip").textContent = userData.nip;
-        document.getElementById("subbid").textContent = userData.subbid;
-        document.getElementById("status").textContent = userData.status;
-        document.getElementById("golongan").textContent = userData.golongan;
-        document.getElementById("jabatan").textContent = userData.jabatan;
+          // Set dropdown nama, disable agar tidak bisa ganti
+          const namaSelect = document.getElementById("nama");
+          namaSelect.value = userData.nama;
+          namaSelect.disabled = true;
 
-        // Tampilkan form sesi kerja
-        document.getElementById("form-wrapper").style.display = "block";
+          // Disable input PIN
+          document.getElementById("pin").disabled = true;
 
-        setLogoutButton();
-        loadSesiStatus();
-      }
-    }, 100);
+          // Tampilkan info user
+          document.getElementById("nip").textContent = userData.nip;
+          document.getElementById("subbid").textContent = userData.subbid;
+          document.getElementById("status").textContent = userData.status;
+          document.getElementById("golongan").textContent = userData.golongan;
+          document.getElementById("jabatan").textContent = userData.jabatan;
+
+          // Tampilkan form sesi kerja
+          document.getElementById("form-wrapper").style.display = "block";
+
+          setLogoutButton();
+          loadSesiStatus();
+        }
+      }, 100);
+    }
   }
 
   // Event listener agar bisa submit login dengan Enter di input PIN
@@ -65,6 +78,7 @@ window.onload = () => {
     }
   });
 };
+
 
 // Fungsi login
 function login() {
@@ -83,7 +97,9 @@ function login() {
     golongan: data[5],
     jabatan: data[6]
   };
+  
   localStorage.setItem('userData', JSON.stringify(userData));
+  localStorage.setItem('loginTime', new Date().toISOString()); // simpan waktu login
 
   // Update UI info pegawai
   document.getElementById("nip").textContent = userData.nip;
