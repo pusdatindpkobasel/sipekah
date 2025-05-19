@@ -193,7 +193,19 @@ function showRemainingTime() {
 // Fungsi untuk render simple calendar bulan sekarang, dan tandai hari dengan laporan user
 function renderSimpleCalendar() {
   const calendarEl = document.getElementById("simple-calendar");
-  if (!calendarEl) return;
+  const calendarTitle = document.getElementById("calendar-title"); // ambil elemen judul
+  if (!calendarEl || !calendarTitle) return;
+
+  // Nama bulan bahasa Indonesia
+  const bulanNames = ["Januari", "Februari", "Maret", "April", "Mei", "Juni",
+                      "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
+
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = now.getMonth();
+
+  // Set judul kalender dengan nama bulan dan tahun sekarang
+  calendarTitle.textContent = `Kalender Laporan ${bulanNames[month]} ${year}`;
 
   // Ambil laporan user hari-hari yang sudah ada
   fetch(`${WEB_APP_URL}?action=getAllLaporan`)
@@ -210,11 +222,6 @@ function renderSimpleCalendar() {
         })
       );
 
-      // Dapatkan info bulan dan tahun sekarang
-      const now = new Date();
-      const year = now.getFullYear();
-      const month = now.getMonth();
-
       // Dapatkan hari pertama bulan ini (0=minggu, 1=senin, ...)
       const firstDay = new Date(year, month, 1);
       const firstWeekday = firstDay.getDay();
@@ -222,17 +229,17 @@ function renderSimpleCalendar() {
       // Dapatkan jumlah hari dalam bulan ini
       const daysInMonth = new Date(year, month + 1, 0).getDate();
 
-      // Clear kalender dulu
-calendarEl.innerHTML = "";
+      // Kosongkan kalender dulu
+      calendarEl.innerHTML = "";
 
-// Buat header nama hari (Min, Sen, Sel, ...)
-const daysOfWeek = ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'];
-daysOfWeek.forEach(day => {
-  const headerCell = document.createElement("div");
-  headerCell.className = "day-cell day-header";
-  headerCell.textContent = day;
-  calendarEl.appendChild(headerCell);
-});
+      // --- Tambahkan baris header hari ---
+      const daysOfWeek = ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'];
+      daysOfWeek.forEach(day => {
+        const headerCell = document.createElement("div");
+        headerCell.className = "day-cell day-header";
+        headerCell.textContent = day;
+        calendarEl.appendChild(headerCell);
+      });
 
       // Buat sel kosong untuk mengisi offset sebelum hari pertama (agar grid rata kiri)
       for (let i = 0; i < firstWeekday; i++) {
