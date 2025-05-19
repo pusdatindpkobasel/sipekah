@@ -225,52 +225,6 @@ function renderSesiForm() {
     `;
   }
 }
-// Fungsi render kalender FullCalendar dengan data laporan filtered by user
-function renderCalendar() {
-  fetch(`${WEB_APP_URL}?action=getAllLaporan`)
-    .then(res => res.json())
-    .then(data => {
-      console.log(data); // Pastikan data berupa array objek dengan properti timestamp dan nama
-
-      // Filter data laporan sesuai user yang login
-      const filtered = data.filter(item => item.nama === userData.nama);
-
-      // Buat event calendar
-      const events = filtered.map(item => ({
-        title: "Laporan Tersedia",
-        start: new Date(item.timestamp),
-        allDay: true,
-        backgroundColor: '#28a745',
-        borderColor: '#28a745'
-      }));
-
-      // Hapus kalender lama jika sudah ada
-      if ($('#calendar').fullCalendar) {
-        $('#calendar').fullCalendar('destroy');
-      }
-
-      // Inisialisasi FullCalendar
-      $('#calendar').fullCalendar({
-        header: {
-          left: 'prev,next today',
-          center: 'title',
-          right: 'month'
-        },
-        events: events,
-        eventClick: function(calEvent) {
-          Swal.fire({
-            icon: 'info',
-            title: 'Laporan Tersedia',
-            text: `Laporan tersedia pada tanggal: ${calEvent.start.format('LL')}`
-          });
-        }
-      });
-    })
-    .catch(err => {
-      console.error('Error loading calendar events:', err);
-    });
-}
-
 
 // Submit sesi (upload file + form)
 async function submitSesi(i) {
