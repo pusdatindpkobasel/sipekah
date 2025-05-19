@@ -22,39 +22,6 @@ script.src = `${WEB_APP_URL}?action=getPegawai&callback=handlePegawai`;
 script.onerror = () => Swal.fire('Error', 'Gagal memuat data pegawai', 'error');
 document.body.appendChild(script);
 
-  // Cek data user di localStorage
-  const savedUser = localStorage.getItem('userData');
-  if (savedUser) {
-    userData = JSON.parse(savedUser);
-
-    const intervalId = setInterval(() => {
-      if (pegawaiList.length > 0) {
-        clearInterval(intervalId);
-
-        // Set dropdown dan disable
-        const namaSelect = document.getElementById("nama");
-        namaSelect.value = userData.nama;
-        namaSelect.disabled = true;
-
-        // Disable PIN
-        document.getElementById("pin").disabled = true;
-
-        // Tampilkan info user
-        document.getElementById("nip").textContent = userData.nip;
-        document.getElementById("subbid").textContent = userData.subbid;
-        document.getElementById("status").textContent = userData.status;
-        document.getElementById("golongan").textContent = userData.golongan;
-        document.getElementById("jabatan").textContent = userData.jabatan;
-
-        // Tampilkan form sesi
-        document.getElementById("form-wrapper").style.display = "block";
-
-        setLogoutButton();
-        loadSesiStatus();
-      }
-    }, 100);
-  }
-
   // Enter key login
   document.getElementById('pin').addEventListener('keydown', e => {
     if (e.key === 'Enter') {
