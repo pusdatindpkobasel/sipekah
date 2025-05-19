@@ -93,8 +93,6 @@ function login() {
   setLogoutButton();
   showRemainingTime();
   loadSesiStatus();
-  // Render Kalender setelah login
- renderCalendar();  // Panggil renderCalendar setelah login berhasil
 }
 
 // Logout
