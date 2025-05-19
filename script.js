@@ -14,7 +14,7 @@ function handlePegawai(data) {
     namaSelect.appendChild(opt);
   });
 }
-
+})
 // Inisialisasi halaman
 window.onload = () => {
   // Load data pegawai via JSONP
