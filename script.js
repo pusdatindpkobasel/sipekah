@@ -62,6 +62,7 @@ window.onload = () => {
 
           // Tampilkan form sesi kerja
           document.getElementById("form-wrapper").style.display = "block";
+          document.getElementById("footer-info").style.display = "block"; // tampilkan footer
 
           setLogoutButton();
           loadSesiStatus();
@@ -109,6 +110,7 @@ function login() {
   document.getElementById("golongan").textContent = userData.golongan;
   document.getElementById("jabatan").textContent = userData.jabatan;
   document.getElementById("form-wrapper").style.display = "block";
+  document.getElementById("footer-info").style.display = "block"; // tampilkan footer
 
   // Disable login form supaya user tidak bisa ganti login sampai logout
   document.getElementById("nama").disabled = true;
@@ -131,6 +133,7 @@ function logout() {
   document.getElementById("pin").disabled = false;
   document.getElementById("pin").value = "";
   document.getElementById("form-wrapper").style.display = "none";
+  document.getElementById("footer-info").style.display = "none"; // sembunyikan footer
 
   // Reset tombol login
   const loginBtn = document.getElementById("login-button");
