@@ -65,6 +65,7 @@ window.onload = () => {
 
           setLogoutButton();
           loadSesiStatus();
+          renderSimpleCalendar();
         }
       }, 100);
     }
@@ -116,6 +117,7 @@ function login() {
   setLogoutButton();
   showRemainingTime();
   loadSesiStatus();
+  renderSimpleCalendar();
 }
 
 // Fungsi logout
@@ -186,6 +188,81 @@ function showRemainingTime() {
     title: 'Sisa Waktu Pengisian',
     text: `Anda memiliki waktu ${diffH} jam ${diffM} menit untuk mengisi form hari ini.`
   });
+}
+
+// Fungsi untuk render simple calendar bulan sekarang, dan tandai hari dengan laporan user
+function renderSimpleCalendar() {
+  const calendarEl = document.getElementById("simple-calendar");
+  if (!calendarEl) return;
+
+  // Ambil laporan user hari-hari yang sudah ada
+  fetch(`${WEB_APP_URL}?action=getAllLaporan`)
+    .then(res => res.json())
+    .then(data => {
+      // Filter hanya laporan milik user yang login
+      const laporanUser = data.filter(item => item.nama === userData.nama);
+
+      // Buat set tanggal yang sudah ada laporan (format yyyy-mm-dd)
+      const laporanDates = new Set(
+        laporanUser.map(item => {
+          const d = new Date(item.timestamp);
+          return d.toISOString().split('T')[0];
+        })
+      );
+
+      // Dapatkan info bulan dan tahun sekarang
+      const now = new Date();
+      const year = now.getFullYear();
+      const month = now.getMonth();
+
+      // Dapatkan hari pertama bulan ini (0=minggu, 1=senin, ...)
+      const firstDay = new Date(year, month, 1);
+      const firstWeekday = firstDay.getDay();
+
+      // Dapatkan jumlah hari dalam bulan ini
+      const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+      // Kosongkan kalender dulu
+      calendarEl.innerHTML = "";
+
+      // Buat sel kosong untuk mengisi offset sebelum hari pertama (agar grid rata kiri)
+      for (let i = 0; i < firstWeekday; i++) {
+        const emptyCell = document.createElement("div");
+        emptyCell.className = "day-cell";
+        calendarEl.appendChild(emptyCell);
+      }
+
+      // Buat cell untuk setiap tanggal
+      for (let day = 1; day <= daysInMonth; day++) {
+        const cell = document.createElement("div");
+        cell.className = "day-cell";
+
+        // Format tanggal untuk cek laporan
+        const dateStr = new Date(year, month, day).toISOString().split('T')[0];
+        cell.textContent = day;
+
+        // Tandai hari ini
+        const today = new Date();
+        if (
+          day === today.getDate() &&
+          month === today.getMonth() &&
+          year === today.getFullYear()
+        ) {
+          cell.classList.add("day-today");
+        }
+
+        // Tandai hari sudah lapor dengan warna hijau
+        if (laporanDates.has(dateStr)) {
+          cell.classList.add("day-reported");
+          cell.title = "Sudah melapor pada tanggal ini";
+        }
+
+        calendarEl.appendChild(cell);
+      }
+    })
+    .catch(err => {
+      console.error("Gagal load data laporan untuk kalender:", err);
+    });
 }
 
 // Fungsi load status sesi kerja dari server
