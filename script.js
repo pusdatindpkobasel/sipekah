@@ -254,6 +254,7 @@ function renderSimpleCalendar() {
         // Tandai hari sudah lapor dengan warna hijau
         if (laporanDates.has(dateStr)) {
           cell.classList.add("day-reported");
+           cell.classList.add("day-reported");
           cell.title = "Sudah melapor pada tanggal ini";
         }
 
