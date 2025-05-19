@@ -222,8 +222,17 @@ function renderSimpleCalendar() {
       // Dapatkan jumlah hari dalam bulan ini
       const daysInMonth = new Date(year, month + 1, 0).getDate();
 
-      // Kosongkan kalender dulu
-      calendarEl.innerHTML = "";
+      // Clear kalender dulu
+calendarEl.innerHTML = "";
+
+// Buat header nama hari (Min, Sen, Sel, ...)
+const daysOfWeek = ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'];
+daysOfWeek.forEach(day => {
+  const headerCell = document.createElement("div");
+  headerCell.className = "day-cell day-header";
+  headerCell.textContent = day;
+  calendarEl.appendChild(headerCell);
+});
 
       // Buat sel kosong untuk mengisi offset sebelum hari pertama (agar grid rata kiri)
       for (let i = 0; i < firstWeekday; i++) {
