@@ -269,7 +269,7 @@ function renderCalendar() {
           });
         }
       });
-    })
+  
     .catch(err => {
       console.error('Error loading calendar events:', err);
     });
