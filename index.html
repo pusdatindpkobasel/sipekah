@@ -21,6 +21,31 @@
         flex-direction: column;
       }
     }
+    #simple-calendar {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 5px;
+  max-width: 400px;
+  margin-top: 1rem;
+}
+
+.day-cell {
+  padding: 10px;
+  border: 1px solid #ccc;
+  text-align: center;
+  cursor: default;
+  user-select: none;
+}
+
+.day-today {
+  background-color: #ffff99; /* warna kuning muda untuk hari ini */
+  font-weight: bold;
+}
+
+.day-reported {
+  background-color: #28a745; /* hijau tanda laporan sudah ada */
+  color: white;
+}
   </style>
 </head>
 <body>
@@ -57,36 +82,41 @@
     <!-- Form Wrapper (tampil setelah login) -->
     <div id="form-wrapper" style="display:none;">
       <div class="row">
-        <!-- Card Info Pegawai -->
-        <div class="col-md-6 mb-4">
-          <div class="card">
-            <div class="card-body">
-              <h5 class="card-title mb-3">Informasi Pegawai</h5>
+       <!-- Card Info Pegawai -->
+<div class="col-md-6 mb-4">
+  <div class="card">
+    <div class="card-body">
+      <h5 class="card-title mb-3">Informasi Pegawai</h5>
 
-              <div class="row mb-1">
-                <div class="col-4 fw-bold">NIP:</div>
-                <div class="col-8" id="nip"></div>
-              </div>
-              <div class="row mb-1">
-                <div class="col-4 fw-bold">Sub Bidang:</div>
-                <div class="col-8" id="subbid"></div>
-              </div>
-              <div class="row mb-1">
-                <div class="col-4 fw-bold">Status Kepegawaian:</div>
-                <div class="col-8" id="status"></div>
-              </div>
-              <div class="row mb-1">
-                <div class="col-4 fw-bold">Golongan:</div>
-                <div class="col-8" id="golongan"></div>
-              </div>
-              <div class="row mb-0">
-                <div class="col-4 fw-bold">Jabatan:</div>
-                <div class="col-8" id="jabatan"></div>
-              </div>
-            </div>
-          </div>
-        </div>
+      <div class="row mb-1">
+        <div class="col-4 fw-bold">NIP:</div>
+        <div class="col-8" id="nip"></div>
+      </div>
+      <div class="row mb-1">
+        <div class="col-4 fw-bold">Sub Bidang:</div>
+        <div class="col-8" id="subbid"></div>
+      </div>
+      <div class="row mb-1">
+        <div class="col-4 fw-bold">Status Kepegawaian:</div>
+        <div class="col-8" id="status"></div>
+      </div>
+      <div class="row mb-1">
+        <div class="col-4 fw-bold">Golongan:</div>
+        <div class="col-8" id="golongan"></div>
+      </div>
+      <div class="row mb-0">
+        <div class="col-4 fw-bold">Jabatan:</div>
+        <div class="col-8" id="jabatan"></div>
+      </div>
 
+      <!-- Tambahkan kalender di sini -->
+      <hr />
+      <h5 class="card-title mb-3">Kalender Laporan</h5>
+      <div id="simple-calendar"></div>
+
+    </div>
+  </div>
+</div>
         <!-- Form Sesi dan Status -->
         <div class="col-md-6">
           <div id="sesi-status"></div>
