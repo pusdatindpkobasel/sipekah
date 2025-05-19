@@ -1,4 +1,4 @@
-const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbxS9glVdvcS0yfMOeEdYxiTgjLbwc2F_TRwoxGG1dYh_3cAPqzFWnHUOOiLSdFgMZR3rA/exec';
+const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbwyeVx8MK_GN8vCgmg5S8cigISkHv5A8OYE107vophbe6DAoJJrlZUS9vQ5bnfmXQDsnQ/exec';
 
 let pegawaiList = [], userData = {}, sesiStatus = {};
 
