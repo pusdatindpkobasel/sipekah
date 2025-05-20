@@ -17,12 +17,14 @@ function handlePegawai(data) {
 
 // Inisialisasi saat halaman load
 window.onload = () => {
+  // Sembunyikan tombol dashboard dulu, supaya pasti tersembunyi sebelum cek login
+  document.getElementById("dashboard-button").style.display = "none";
   // Load data pegawai via JSONP (script injection)
   const script = document.createElement('script');
   script.src = `${WEB_APP_URL}?action=getPegawai&callback=handlePegawai`;
   script.onerror = () => Swal.fire('Error', 'Gagal memuat data pegawai', 'error');
   document.body.appendChild(script);
-
+ 
   // Cek apakah ada user yang sudah login (data tersimpan di localStorage)
   const savedUser = localStorage.getItem('userData');
   const loginTimeStr = localStorage.getItem('loginTime');
