@@ -111,6 +111,7 @@ function login() {
   document.getElementById("jabatan").textContent = userData.jabatan;
   document.getElementById("form-wrapper").style.display = "block";
   document.getElementById("footer-info").style.display = "block"; // tampilkan footer
+  document.getElementById("dashboard-button").style.display = "inline-flex"; // atau "flex" sesuai styling
 
   // Disable login form supaya user tidak bisa ganti login sampai logout
   document.getElementById("nama").disabled = true;
@@ -134,6 +135,7 @@ function logout() {
   document.getElementById("pin").value = "";
   document.getElementById("form-wrapper").style.display = "none";
   document.getElementById("footer-info").style.display = "none"; // sembunyikan footer
+  document.getElementById("dashboard-button").style.display = "none";
 
   // Reset tombol login
   const loginBtn = document.getElementById("login-button");
