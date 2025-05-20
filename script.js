@@ -2,7 +2,7 @@ const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbxS9glVdvcS0yfMOeEd
 
 let pegawaiList = [], userData = {}, sesiStatus = {};
 
-// Fungsi callback untuk JSONP, akan dipanggil dari server Google Apps Script
+// Fungsi callback JSONP (load pegawai)
 function handlePegawai(data) {
   pegawaiList = data;
   const namaSelect = document.getElementById("nama");
@@ -15,62 +15,92 @@ function handlePegawai(data) {
   });
 }
 
-// Inisialisasi saat halaman load
+// Fungsi buat tombol dashboard dinamis (pas login)
+function createDashboardButton() {
+  // Cek kalau sudah ada, supaya gak bikin duplikat
+  if (!document.getElementById("dashboard-button")) {
+    const a = document.createElement('a');
+    a.href = "https://lookerstudio.google.com/reporting/xyz";
+    a.target = "_blank";
+    a.className = "btn btn-success d-flex align-items-center gap-1";
+    a.id = "dashboard-button";
+
+    a.innerHTML = `
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" 
+           class="bi bi-bar-chart-line" viewBox="0 0 16 16">
+        <path d="M0 0h1v15h15v1H0V0z"/>
+        <path d="M10 10h1v3h-1v-3zM7 6h1v7H7V6zM4 9h1v4H4V9z"/>
+      </svg>
+      Dashboard
+    `;
+
+    // Tempel di sebelah tombol login (dalam form, div dengan class d-flex gap-2)
+    const formButtonDiv = document.querySelector('form .d-flex.gap-2');
+    if (formButtonDiv) {
+      formButtonDiv.appendChild(a);
+    } else {
+      // fallback ke form
+      document.querySelector('form').appendChild(a);
+    }
+  }
+}
+
+// Fungsi hapus tombol dashboard (pas logout)
+function removeDashboardButton() {
+  const btn = document.getElementById("dashboard-button");
+  if (btn) {
+    btn.remove();
+  }
+}
+
+// window.onload tanpa akses dashboard-button (karena belum ada)
 window.onload = () => {
-  const dashBtn = document.getElementById("dashboard-button");
   const footer = document.getElementById("footer-info");
-
-  dashBtn.style.display = "none";
-  dashBtn.disabled = true;
-  dashBtn.classList.add('disabled');
-
   footer.style.display = "none";
-  // Load data pegawai via JSONP (script injection)
+
+  // Load data pegawai via JSONP
   const script = document.createElement('script');
   script.src = `${WEB_APP_URL}?action=getPegawai&callback=handlePegawai`;
   script.onerror = () => Swal.fire('Error', 'Gagal memuat data pegawai', 'error');
   document.body.appendChild(script);
- 
-  // Cek apakah ada user yang sudah login (data tersimpan di localStorage)
+
+  // Cek user login lama di localStorage
   const savedUser = localStorage.getItem('userData');
   const loginTimeStr = localStorage.getItem('loginTime');
 
   if (savedUser && loginTimeStr) {
     const loginTime = new Date(loginTimeStr);
     const now = new Date();
-    const diffMinutes = (now - loginTime) / 1000 / 60; // selisih menit
+    const diffMinutes = (now - loginTime) / 1000 / 60;
 
-    if (diffMinutes > 60) { // waktu expired 60 menit (bisa disesuaikan)
-      // Clear localStorage jika sudah expired
+    if (diffMinutes > 60) {
       localStorage.removeItem('userData');
       localStorage.removeItem('loginTime');
       console.log('Login expired, localStorage cleared');
     } else {
       userData = JSON.parse(savedUser);
 
-      // Tunggu sampai data pegawai sudah siap (karena JSONP async)
       const intervalId = setInterval(() => {
         if (pegawaiList.length > 0) {
           clearInterval(intervalId);
 
-          // Set dropdown nama, disable agar tidak bisa ganti
           const namaSelect = document.getElementById("nama");
           namaSelect.value = userData.nama;
           namaSelect.disabled = true;
 
-          // Disable input PIN
           document.getElementById("pin").disabled = true;
 
-          // Tampilkan info user
           document.getElementById("nip").textContent = userData.nip;
           document.getElementById("subbid").textContent = userData.subbid;
           document.getElementById("status").textContent = userData.status;
           document.getElementById("golongan").textContent = userData.golongan;
           document.getElementById("jabatan").textContent = userData.jabatan;
 
-          // Tampilkan form sesi kerja
           document.getElementById("form-wrapper").style.display = "block";
-          document.getElementById("footer-info").style.display = "block"; // tampilkan footer
+          footer.style.display = "block";
+
+          // Buat tombol dashboard
+          createDashboardButton();
 
           setLogoutButton();
           loadSesiStatus();
@@ -80,17 +110,15 @@ window.onload = () => {
     }
   }
 
-  // Event listener agar bisa submit login dengan Enter di input PIN
   document.getElementById('pin').addEventListener('keydown', function(e) {
     if (e.key === 'Enter') {
       e.preventDefault();
       login();
     }
   });
-};
+}
 
-
-// Fungsi login
+// Fungsi login (tambah createDashboardButton)
 function login() {
   const nama = document.getElementById("nama").value;
   const pin = document.getElementById("pin").value;
@@ -98,14 +126,6 @@ function login() {
   if (!data || pin !== data[7]) {
     return Swal.fire("Gagal", "PIN salah", "error");
   }
- const dashBtn = document.getElementById("dashboard-button");
-const footer = document.getElementById("footer-info");
-
-dashBtn.style.display = "inline-flex";
-dashBtn.disabled = false;
-dashBtn.classList.remove('disabled');
-
-footer.style.display = "block";
 
   userData = {
     nama: data[0],
@@ -115,20 +135,20 @@ footer.style.display = "block";
     golongan: data[5],
     jabatan: data[6]
   };
-  
-  localStorage.setItem('userData', JSON.stringify(userData));
-  localStorage.setItem('loginTime', new Date().toISOString()); // simpan waktu login
 
-  // Update UI info pegawai
+  localStorage.setItem('userData', JSON.stringify(userData));
+  localStorage.setItem('loginTime', new Date().toISOString());
+
   document.getElementById("nip").textContent = userData.nip;
   document.getElementById("subbid").textContent = userData.subbid;
   document.getElementById("status").textContent = userData.status;
   document.getElementById("golongan").textContent = userData.golongan;
   document.getElementById("jabatan").textContent = userData.jabatan;
   document.getElementById("form-wrapper").style.display = "block";
-  document.getElementById("footer-info").style.display = "block"; // tampilkan footer
+  document.getElementById("footer-info").style.display = "block";
 
-  // Disable login form supaya user tidak bisa ganti login sampai logout
+  createDashboardButton();
+
   document.getElementById("nama").disabled = true;
   document.getElementById("pin").disabled = true;
 
@@ -138,28 +158,22 @@ footer.style.display = "block";
   renderSimpleCalendar();
 }
 
-// Fungsi logout
+// Fungsi logout (hapus tombol dashboard)
 function logout() {
   localStorage.removeItem('userData');
   userData = {};
   sesiStatus = {};
 
-  const dashBtn = document.getElementById("dashboard-button");
+  removeDashboardButton();
+
   const footer = document.getElementById("footer-info");
-
-  dashBtn.style.display = "none";
-dashBtn.disabled = true;
-dashBtn.classList.add('disabled');
-
   footer.style.display = "none";
 
-  // Enable login form kembali
   document.getElementById("nama").disabled = false;
   document.getElementById("pin").disabled = false;
   document.getElementById("pin").value = "";
   document.getElementById("form-wrapper").style.display = "none";
 
-  // Reset tombol login
   const loginBtn = document.getElementById("login-button");
   loginBtn.innerHTML = `
     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" 
