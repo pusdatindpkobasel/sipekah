@@ -20,7 +20,7 @@ function createDashboardButton() {
   // Cek kalau sudah ada, supaya gak bikin duplikat
   if (!document.getElementById("dashboard-button")) {
     const a = document.createElement('a');
-    a.href = "https://lookerstudio.google.com/reporting/xyz";
+    a.href = "https://lookerstudio.google.com/u/0/reporting/1c845d81-5b0a-41c9-bdfc-39fd342d0a5b/page/chBKF";
     a.target = "_blank";
     a.className = "btn btn-success d-flex align-items-center gap-1";
     a.id = "dashboard-button";
