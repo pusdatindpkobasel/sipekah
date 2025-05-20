@@ -30,36 +30,62 @@
   display: grid;
   grid-template-columns: repeat(7, 1fr);
   gap: 5px;
-  width: 100%;          /* full width container */
-  max-width: 100vw;     /* maksimal selebar viewport */
-  box-sizing: border-box;
+  max-width: 100%; /* full lebar container */
   margin-top: 1rem;
-  overflow-x: auto;     /* kalau terpotong, bisa scroll horizontal */
-  -webkit-overflow-scrolling: touch; /* smooth scroll di iOS */
-  padding-bottom: 0.5rem;  /* space bawah agar nyaman scroll */
+  box-sizing: border-box;
+  padding: 0 5px; /* beri padding kiri kanan agar tidak nempel */
+  overflow-x: auto; /* agar bisa scroll horizontal jika sempit */
 }
 
-.day-cell, .day-header {
-  min-width: 40px;      /* ukuran minimal tiap cell */
-  padding: 8px 5px;
+.day-header {
+  font-weight: bold;
+  background-color: #f0f0f0;
   text-align: center;
+  padding: 8px 0;
+  border-bottom: 2px solid #ccc;
   user-select: none;
-  white-space: nowrap;  /* supaya angka dan teks tidak terpotong di cell */
+  font-size: 0.85rem;
 }
 
+.day-cell {
+  padding: 8px 0;
+  border: 1px solid #ccc;
+  text-align: center;
+  cursor: default;
+  user-select: none;
+  font-size: 0.9rem;
+  min-width: 32px; /* supaya cell tidak terlalu kecil */
+}
+
+/* Penanda hari ini */
 .day-today {
   background-color: #ffff99; /* warna kuning muda untuk hari ini */
   font-weight: bold;
 }
 
+/* Penanda hari sudah lapor */
 .day-reported {
   background-color: #28a745; /* hijau */
   color: white;
 }
+
+/* Hari ini yang sudah lapor */
 .day-today.day-reported {
   background-color: #ffc107 !important; /* kuning keemasan, lebih tegas */
   color: black !important; /* teks hitam agar jelas */
   font-weight: bold;
+}
+
+/* Responsive untuk layar kecil */
+@media (max-width: 576px) {
+  #simple-calendar {
+    grid-template-columns: repeat(7, minmax(30px, 1fr)); /* lebih fleksibel */
+    font-size: 0.75rem;
+  }
+  
+  .day-cell, .day-header {
+    padding: 6px 0;
+  }
 }
   </style>
 </head>
