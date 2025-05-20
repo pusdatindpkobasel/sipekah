@@ -17,8 +17,14 @@ function handlePegawai(data) {
 
 // Inisialisasi saat halaman load
 window.onload = () => {
-  // Sembunyikan tombol dashboard dulu, supaya pasti tersembunyi sebelum cek login
-  document.getElementById("dashboard-button").style.display = "none";
+  const dashBtn = document.getElementById("dashboard-button");
+  const footer = document.getElementById("footer-info");
+
+  dashBtn.style.display = "none";
+  dashBtn.disabled = true;
+  dashBtn.classList.add('disabled');
+
+  footer.style.display = "none";
   // Load data pegawai via JSONP (script injection)
   const script = document.createElement('script');
   script.src = `${WEB_APP_URL}?action=getPegawai&callback=handlePegawai`;
@@ -92,6 +98,14 @@ function login() {
   if (!data || pin !== data[7]) {
     return Swal.fire("Gagal", "PIN salah", "error");
   }
+ const dashBtn = document.getElementById("dashboard-button");
+const footer = document.getElementById("footer-info");
+
+dashBtn.style.display = "inline-flex";
+dashBtn.disabled = false;
+dashBtn.classList.remove('disabled');
+
+footer.style.display = "block";
 
   userData = {
     nama: data[0],
@@ -113,7 +127,6 @@ function login() {
   document.getElementById("jabatan").textContent = userData.jabatan;
   document.getElementById("form-wrapper").style.display = "block";
   document.getElementById("footer-info").style.display = "block"; // tampilkan footer
-  document.getElementById("dashboard-button").style.display = "inline-flex"; // atau "flex" sesuai styling
 
   // Disable login form supaya user tidak bisa ganti login sampai logout
   document.getElementById("nama").disabled = true;
@@ -131,13 +144,20 @@ function logout() {
   userData = {};
   sesiStatus = {};
 
+  const dashBtn = document.getElementById("dashboard-button");
+  const footer = document.getElementById("footer-info");
+
+  dashBtn.style.display = "none";
+dashBtn.disabled = true;
+dashBtn.classList.add('disabled');
+
+  footer.style.display = "none";
+
   // Enable login form kembali
   document.getElementById("nama").disabled = false;
   document.getElementById("pin").disabled = false;
   document.getElementById("pin").value = "";
   document.getElementById("form-wrapper").style.display = "none";
-  document.getElementById("footer-info").style.display = "none"; // sembunyikan footer
-  document.getElementById("dashboard-button").style.display = "none";
 
   // Reset tombol login
   const loginBtn = document.getElementById("login-button");
