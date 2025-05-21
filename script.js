@@ -1,44 +1,27 @@
 const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbxS9glVdvcS0yfMOeEdYxiTgjLbwc2F_TRwoxGG1dYh_3cAPqzFWnHUOOiLSdFgMZR3rA/exec';
 
 let userData = {}, sesiStatus = {};
-const filterBulan = document.getElementById('filter-bulan');
-const filterTanggal = document.getElementById('filter-tanggal');
+let filterBulan, filterTanggal; // deklarasi global tapi isi nanti di window.onload
 
 // Data master pilihan kategori untuk Profil Saya
 const masterSubBidang = [
-  "Kepegawaian",
-  "Umum",
-  "Keuangan",
-  "Teknologi Informasi",
-  "Hukum",
-  "Pengawasan",
-  "Lainnya"
+  "Kepegawaian", "Umum", "Keuangan", "Teknologi Informasi", "Hukum", "Pengawasan", "Lainnya"
 ];
-
 const masterStatusKepegawaian = [
-  "PNS",
-  "Honorer",
-  "CPNS",
-  "Pegawai Kontrak",
-  "Lainnya"
+  "PNS", "Honorer", "CPNS", "Pegawai Kontrak", "Lainnya"
 ];
-
 const masterGolongan = [
-  "III/a", "III/b", "III/c", "III/d",
-  "IV/a", "IV/b", "IV/c", "IV/d", "IV/e"
+  "III/a", "III/b", "III/c", "III/d", "IV/a", "IV/b", "IV/c", "IV/d", "IV/e"
 ];
-
 const masterJabatan = [
-  "Staff",
-  "Kepala Sub Bagian",
-  "Kepala Bagian",
-  "Kepala Bidang",
-  "Sekretaris",
-  "Kepala Dinas",
-  "Lainnya"
+  "Staff", "Kepala Sub Bagian", "Kepala Bagian", "Kepala Bidang", "Sekretaris", "Kepala Dinas", "Lainnya"
 ];
 
 window.onload = () => {
+  // Ambil elemen filter setelah DOM siap
+  filterBulan = document.getElementById('filter-bulan');
+  filterTanggal = document.getElementById('filter-tanggal');
+
   // Cek login user dari localStorage
   const savedUser = localStorage.getItem('userData');
   const loginTimeStr = localStorage.getItem('loginTime');
@@ -68,7 +51,7 @@ window.onload = () => {
   loadSesiStatus();
   setLogoutButton();
 
-  setupFilters();
+  setupFilters(filterBulan, filterTanggal);
 
   // Load default riwayat laporan bulan ini tanpa filter tanggal
   let month = now.getMonth() + 1;
@@ -80,12 +63,11 @@ window.onload = () => {
   loadRiwayatLaporan(defaultMonthYear, "");
 
   // Load data profil saat buka halaman profil
-  // Kalau halaman profil aktif langsung load user profile
   if(document.getElementById('page-profil').style.display !== 'none'){
     loadUserProfile();
   }
 
-  // Logout button event listeners
+  // Pasang event logout
   document.getElementById('logout-button').addEventListener('click', logout);
   document.getElementById('logout-button-mobile').addEventListener('click', logout);
 };
@@ -264,7 +246,7 @@ function renderSesiForm() {
         ` : `
           <textarea id="sesi${i}" class="form-control mb-2" placeholder="Uraian pekerjaan sesi ${i}"></textarea>
           <input type="file" id="file${i}" class="form-control mb-2" accept=".jpg,.jpeg,.png,.pdf" />
-          <button class="btn btn-success" onclick="submitSesi(${i})">Kirim Sesi ${i}</button>
+          <button class="btn btn-success" id="btn-kirim-sesi${i}">Kirim Sesi ${i}</button>
         `}
       </div>
     `;
@@ -280,11 +262,22 @@ function renderSesiForm() {
       </div>
     `;
   }
+
+  // Pasang event listener untuk tombol kirim sesi yg baru dibuat (hanya yg belum diisi)
+  for(let i=1; i<=7; i++){
+    if(!sesiStatus[`sesi${i}`]){
+      const btn = document.getElementById(`btn-kirim-sesi${i}`);
+      if(btn){
+        btn.addEventListener('click', () => submitSesi(i));
+      }
+    }
+  }
 }
 
 async function submitSesi(i) {
   const pekerjaan = document.getElementById(`sesi${i}`).value.trim();
-  const file = document.getElementById(`file${i}`).files[0];
+  const fileInput = document.getElementById(`file${i}`);
+  const file = fileInput ? fileInput.files[0] : null;
 
   if (!pekerjaan || !file) {
     Swal.fire("Isi uraian & pilih file", "", "warning");
@@ -440,7 +433,7 @@ function loadRiwayatLaporan(bulanTahun, tanggalFilter = "") {
     });
 }
 
-function setupFilters() {
+function setupFilters(filterBulan, filterTanggal) {
   filterBulan.addEventListener('change', (e) => {
     const bulan = e.target.value;
     filterTanggal.value = "";
@@ -545,8 +538,21 @@ document.getElementById('profil-form').addEventListener('submit', async (e) => {
 });
 
 // =========== Logout ===========
+
 function logout() {
   localStorage.removeItem('userData');
   localStorage.removeItem('loginTime');
   window.location.href = 'login.html';
+}
+
+// setLogoutButton bisa dipakai untuk setting button logout tambahan jika dibutuhkan
+function setLogoutButton() {
+  const logoutBtn = document.getElementById('logout-button');
+  if(logoutBtn){
+    logoutBtn.addEventListener('click', logout);
+  }
+  const logoutBtnMobile = document.getElementById('logout-button-mobile');
+  if(logoutBtnMobile){
+    logoutBtnMobile.addEventListener('click', logout);
+  }
 }
