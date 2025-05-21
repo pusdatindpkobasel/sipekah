@@ -1,6 +1,8 @@
 const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbxS9glVdvcS0yfMOeEdYxiTgjLbwc2F_TRwoxGG1dYh_3cAPqzFWnHUOOiLSdFgMZR3rA/exec';
 
 let userData = {}, sesiStatus = {};
+const filterBulan = document.getElementById('filter-bulan');
+const filterTanggal = document.getElementById('filter-tanggal');
 
 window.onload = () => {
   // Cek login user dari localStorage
@@ -26,15 +28,30 @@ window.onload = () => {
 
   userData = JSON.parse(savedUser);
 
-  setupNavigation();  // PENTING: harus dipanggil dulu
+  // Setup sidebar menu navigation & mobile toggle
+  setupNavigation();
 
+  // Tampilkan halaman beranda default dan isi data pegawai
   showPage('beranda');
   displayUserInfo();
   renderSimpleCalendar();
   loadSesiStatus();
   setLogoutButton();
 
-  // Pasang event logout di tombol sidebar dan mobile
+  // Setup event filter laporan
+  setupFilters();
+
+  // Load default riwayat laporan bulan ini tanpa filter tanggal
+  const now = new Date();
+  let month = now.getMonth() + 1;
+  month = month < 10 ? '0' + month : month;
+  const year = now.getFullYear();
+  const defaultMonthYear = `${year}-${month}`;
+  filterBulan.value = defaultMonthYear;
+  filterTanggal.value = "";
+  loadRiwayatLaporan(defaultMonthYear, "");
+
+  // Logout buttons
   document.getElementById('logout-button').addEventListener('click', logout);
   document.getElementById('logout-button-mobile').addEventListener('click', logout);
 };
@@ -65,6 +82,7 @@ function setupNavigation() {
       e.preventDefault();
       showPage(link.dataset.page);
 
+      // Jika di mobile, sembunyikan sidebar setelah klik menu
       if(window.innerWidth <= 768){
         sidebar.classList.remove('show');
         hamburgerBtn.setAttribute('aria-expanded', false);
@@ -77,25 +95,11 @@ function setupNavigation() {
     hamburgerBtn.setAttribute('aria-expanded', isShown);
   });
 
-  // Tampilkan halaman Beranda default saat setup
+  // Tampilkan halaman Beranda default
   showPage('beranda');
-}
 
-function showPage(pageId) {
-  const pages = document.querySelectorAll('.page-content');
-  pages.forEach(p => p.style.display = 'none');
-  document.getElementById(`page-${pageId}`).style.display = 'block';
-
-  const menuLinks = document.querySelectorAll('#sidebar-menu a');
-  menuLinks.forEach(link => {
-    if (link.dataset.page === pageId) {
-      link.classList.add('active');
-      link.setAttribute('aria-current', 'page');
-    } else {
-      link.classList.remove('active');
-      link.removeAttribute('aria-current');
-    }
-  });
+  // Expose showPage untuk dipakai di luar
+  window.showPage = showPage;
 }
 
 function displayUserInfo() {
@@ -192,87 +196,6 @@ function loadSesiStatus() {
     });
 }
 
-// Tambahkan ini di bawah fungsi loadSesiStatus() atau di tempat yang pas
-
-function loadRiwayatLaporan(bulanTahun) {
-  // bulanTahun format: "YYYY-MM"
-  fetch(`${WEB_APP_URL}?action=getAllLaporan`)
-    .then(res => res.json())
-    .then(data => {
-      // Filter data user yang login dan bulan yang dipilih
-      const laporanUser = data.filter(item => {
-        if(item.nama !== userData.nama) return false;
-        if(!bulanTahun) return true; // kalau kosong, ambil semua
-
-        // Filter berdasarkan bulan dan tahun dari timestamp
-        const tanggal = new Date(item.timestamp);
-        const y = tanggal.getFullYear();
-        let m = tanggal.getMonth() + 1; // 1-based
-        m = m < 10 ? '0' + m : m;
-        const itemBulanTahun = `${y}-${m}`;
-        return itemBulanTahun === bulanTahun;
-      });
-
-      // Render tabel
-      const tbody = document.querySelector("#tabel-riwayat tbody");
-      tbody.innerHTML = "";
-
-      if (laporanUser.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="3" class="text-center">Belum ada laporan di bulan ini.</td></tr>`;
-        return;
-      }
-
-      laporanUser.forEach(laporan => {
-        // sesi: bisa kumpulan sesi, biasanya 7 sesi
-        // data laporannya ada di properti seperti sesi1, sesi2, ..., bukti1, bukti2, ...
-        // Kita tampilkan sesi per sesi
-
-        for(let i=1; i<=7; i++){
-          const sesiKey = `sesi${i}`;
-          const buktiKey = `bukti${i}`;
-          if(laporan[sesiKey]){
-            const row = document.createElement("tr");
-            row.innerHTML = `
-              <td>Sesi ${i}</td>
-              <td>${laporan[sesiKey]}</td>
-              <td>${laporan[buktiKey] ? `<a href="${laporan[buktiKey]}" target="_blank">Lihat Bukti</a>` : '-'}</td>
-            `;
-            tbody.appendChild(row);
-          }
-        }
-      });
-    })
-    .catch(err => {
-      console.error("Gagal load riwayat laporan:", err);
-    });
-}
-
-// Event listener untuk filter bulan
-const filterBulan = document.getElementById('filter-bulan');
-if(filterBulan){
-  filterBulan.addEventListener('change', (e) => {
-    loadRiwayatLaporan(e.target.value);
-  });
-}
-
-// Saat halaman siap dan user sudah login, load data laporan untuk bulan sekarang default
-window.onload = () => {
-  // ... kode login sudah ada sebelumnya ...
-
-  // Load riwayat laporan bulan ini (default)
-  const now = new Date();
-  let month = now.getMonth() + 1;
-  month = month < 10 ? '0' + month : month;
-  const year = now.getFullYear();
-  const defaultMonthYear = `${year}-${month}`;
-  if(filterBulan){
-    filterBulan.value = defaultMonthYear;
-  }
-  loadRiwayatLaporan(defaultMonthYear);
-
-  // kode lain tetap ...
-};
-
 function getJamSesi(i) {
   const jam = [
     "(07.30–08.30)", "(08.30–09.30)", "(09.30–10.30)", "(10.30–12.00)",
@@ -312,6 +235,7 @@ function renderSesiForm() {
     wrapper.appendChild(div);
   }
 
+  // Update indikator kelengkapan sesi
   const statusEl = document.getElementById("sesi-status");
   if (statusEl) {
     statusEl.innerHTML = `
@@ -393,14 +317,109 @@ async function submitSesi(i) {
   reader.readAsDataURL(file);
 }
 
+// FILTER LAPORAN
+
+function populateTanggalOptions(laporanUser, bulanTahun) {
+  const tanggalSet = new Set();
+
+  laporanUser.forEach(item => {
+    const tanggal = new Date(item.timestamp);
+    const y = tanggal.getFullYear();
+    let m = tanggal.getMonth() + 1;
+    let d = tanggal.getDate();
+    m = m < 10 ? '0' + m : m;
+    d = d < 10 ? '0' + d : d;
+    const itemBulanTahun = `${y}-${m}`;
+    if(itemBulanTahun === bulanTahun){
+      tanggalSet.add(`${y}-${m}-${d}`);
+    }
+  });
+
+  filterTanggal.innerHTML = `<option value="">-- Pilih Tanggal --</option>`;
+  if(tanggalSet.size === 0){
+    filterTanggal.disabled = true;
+  } else {
+    filterTanggal.disabled = false;
+    Array.from(tanggalSet).sort().forEach(tgl => {
+      const opt = document.createElement('option');
+      opt.value = tgl;
+      opt.textContent = tgl;
+      filterTanggal.appendChild(opt);
+    });
+  }
+}
+
+function loadRiwayatLaporan(bulanTahun, tanggalFilter = "") {
+  fetch(`${WEB_APP_URL}?action=getAllLaporan`)
+    .then(res => res.json())
+    .then(data => {
+      const laporanUser = data.filter(item => {
+        if(item.nama !== userData.nama) return false;
+        if(!bulanTahun) return true;
+
+        const tanggal = new Date(item.timestamp);
+        const y = tanggal.getFullYear();
+        let m = tanggal.getMonth() + 1;
+        m = m < 10 ? '0' + m : m;
+        const itemBulanTahun = `${y}-${m}`;
+        if(itemBulanTahun !== bulanTahun) return false;
+
+        if(tanggalFilter){
+          let d = tanggal.getDate();
+          d = d < 10 ? '0' + d : d;
+          const fullTanggal = `${y}-${m}-${d}`;
+          return fullTanggal === tanggalFilter;
+        }
+        return true;
+      });
+
+      populateTanggalOptions(data.filter(item => item.nama === userData.nama), bulanTahun);
+
+      const tbody = document.querySelector("#tabel-riwayat tbody");
+      tbody.innerHTML = "";
+
+      if (laporanUser.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="3" class="text-center">Belum ada laporan di periode ini.</td></tr>`;
+        return;
+      }
+
+      laporanUser.forEach(laporan => {
+        for(let i=1; i<=7; i++){
+          const sesiKey = `sesi${i}`;
+          const buktiKey = `bukti${i}`;
+          if(laporan[sesiKey]){
+            const row = document.createElement("tr");
+            row.innerHTML = `
+              <td>Sesi ${i}</td>
+              <td>${laporan[sesiKey]}</td>
+              <td>${laporan[buktiKey] ? `<a href="${laporan[buktiKey]}" target="_blank">Lihat Bukti</a>` : '-'}</td>
+            `;
+            tbody.appendChild(row);
+          }
+        }
+      });
+    })
+    .catch(err => {
+      console.error("Gagal load riwayat laporan:", err);
+    });
+}
+
+function setupFilters() {
+  filterBulan.addEventListener('change', (e) => {
+    const bulan = e.target.value;
+    filterTanggal.value = "";
+    loadRiwayatLaporan(bulan, "");
+  });
+
+  filterTanggal.addEventListener('change', (e) => {
+    const tanggal = e.target.value;
+    const bulan = filterBulan.value;
+    loadRiwayatLaporan(bulan, tanggal);
+  });
+}
+
 function logout() {
   localStorage.removeItem('userData');
   localStorage.removeItem('loginTime');
-  userData = {};
-  sesiStatus = {};
   window.location.href = 'login.html';
-}
-
-function setLogoutButton() {
-  // logout button sudah event listener nya di window.onload
 }
