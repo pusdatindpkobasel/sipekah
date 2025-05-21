@@ -295,6 +295,7 @@ function renderSesiForm() {
   console.log('renderSesiForm called, totalIsi:', totalIsi);
 }
 
+// Fungsi submit sesi dengan upload file dan data form
 async function submitSesi(i) {
   const pekerjaan = document.getElementById(`sesi${i}`).value.trim();
   const file = document.getElementById(`file${i}`).files[0];
