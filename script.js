@@ -558,9 +558,24 @@ document.getElementById('profil-form').addEventListener('submit', async (e) => {
 // =========== Logout ===========
 
 function logout() {
-  localStorage.removeItem('userData');
-  localStorage.removeItem('loginTime');
-  window.location.href = 'login.html';
+  Swal.fire({
+    title: 'Apakah Anda yakin?',
+    text: "Anda akan logout dari sistem.",
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#3085d6',
+    cancelButtonColor: '#d33',
+    confirmButtonText: 'Ya, Logout!',
+    cancelButtonText: 'Tidak, Tetap di sini!'
+  }).then((result) => {
+    if (result.isConfirmed) {
+      // Hapus data login dan user dari localStorage
+      localStorage.removeItem('userData');
+      localStorage.removeItem('loginTime');
+      // Redirect ke halaman login
+      window.location.href = 'login.html';
+    }
+  });
 }
 
 // Pasang logout button listener kalau tombol logout dinamis atau belum terpasang saat onload
