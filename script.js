@@ -6,21 +6,16 @@ const filterTanggal = document.getElementById('filter-tanggal');
 
 // Data master pilihan kategori untuk Profil Saya
 const masterSubBidang = [
-  "Kepegawaian",
-  "Umum",
-  "Keuangan",
-  "Teknologi Informasi",
-  "Hukum",
-  "Pengawasan",
-  "Lainnya"
+  "Sekretariat",
+  "Bidang Pemasaran Pariwisata & Ekraf",
+  "Bidang Pengembangan Destinasi Pariwisata",
+  "Bidang Pemuda & Olahraga",
 ];
 
 const masterStatusKepegawaian = [
   "PNS",
-  "Honorer",
-  "CPNS",
-  "Pegawai Kontrak",
-  "Lainnya"
+  "PPPK",
+  "PHL",
 ];
 
 const masterGolongan = [
@@ -31,11 +26,9 @@ const masterGolongan = [
 const masterJabatan = [
   "Staff",
   "Kepala Sub Bagian",
-  "Kepala Bagian",
   "Kepala Bidang",
   "Sekretaris",
   "Kepala Dinas",
-  "Lainnya"
 ];
 
 window.onload = () => {
