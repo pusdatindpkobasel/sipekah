@@ -4,6 +4,40 @@ let userData = {}, sesiStatus = {};
 const filterBulan = document.getElementById('filter-bulan');
 const filterTanggal = document.getElementById('filter-tanggal');
 
+// Data master pilihan kategori untuk Profil Saya
+const masterSubBidang = [
+  "Kepegawaian",
+  "Umum",
+  "Keuangan",
+  "Teknologi Informasi",
+  "Hukum",
+  "Pengawasan",
+  "Lainnya"
+];
+
+const masterStatusKepegawaian = [
+  "PNS",
+  "Honorer",
+  "CPNS",
+  "Pegawai Kontrak",
+  "Lainnya"
+];
+
+const masterGolongan = [
+  "III/a", "III/b", "III/c", "III/d",
+  "IV/a", "IV/b", "IV/c", "IV/d", "IV/e"
+];
+
+const masterJabatan = [
+  "Staff",
+  "Kepala Sub Bagian",
+  "Kepala Bagian",
+  "Kepala Bidang",
+  "Sekretaris",
+  "Kepala Dinas",
+  "Lainnya"
+];
+
 window.onload = () => {
   // Cek login user dari localStorage
   const savedUser = localStorage.getItem('userData');
@@ -11,7 +45,6 @@ window.onload = () => {
   const now = new Date();
 
   if (!savedUser || !loginTimeStr) {
-    // Belum login atau data hilang, redirect ke login
     window.location.href = 'login.html';
     return;
   }
@@ -19,7 +52,6 @@ window.onload = () => {
   const loginTime = new Date(loginTimeStr);
   const diffMinutes = (now - loginTime) / 1000 / 60;
   if (diffMinutes > 60) {
-    // Session expired
     localStorage.removeItem('userData');
     localStorage.removeItem('loginTime');
     window.location.href = 'login.html';
@@ -28,21 +60,17 @@ window.onload = () => {
 
   userData = JSON.parse(savedUser);
 
-  // Setup sidebar menu navigation & mobile toggle
   setupNavigation();
 
-  // Tampilkan halaman beranda default dan isi data pegawai
   showPage('beranda');
   displayUserInfo();
   renderSimpleCalendar();
   loadSesiStatus();
   setLogoutButton();
 
-  // Setup event filter laporan
   setupFilters();
 
   // Load default riwayat laporan bulan ini tanpa filter tanggal
-  const now = new Date();
   let month = now.getMonth() + 1;
   month = month < 10 ? '0' + month : month;
   const year = now.getFullYear();
@@ -51,7 +79,13 @@ window.onload = () => {
   filterTanggal.value = "";
   loadRiwayatLaporan(defaultMonthYear, "");
 
-  // Logout buttons
+  // Load data profil saat buka halaman profil
+  // Kalau halaman profil aktif langsung load user profile
+  if(document.getElementById('page-profil').style.display !== 'none'){
+    loadUserProfile();
+  }
+
+  // Logout button event listeners
   document.getElementById('logout-button').addEventListener('click', logout);
   document.getElementById('logout-button-mobile').addEventListener('click', logout);
 };
@@ -82,6 +116,10 @@ function setupNavigation() {
       e.preventDefault();
       showPage(link.dataset.page);
 
+      if(link.dataset.page === 'profil') {
+        loadUserProfile();
+      }
+
       // Jika di mobile, sembunyikan sidebar setelah klik menu
       if(window.innerWidth <= 768){
         sidebar.classList.remove('show');
@@ -98,8 +136,7 @@ function setupNavigation() {
   // Tampilkan halaman Beranda default
   showPage('beranda');
 
-  // Expose showPage untuk dipakai di luar
-  window.showPage = showPage;
+  window.showPage = showPage; // expose untuk akses global
 }
 
 function displayUserInfo() {
@@ -235,7 +272,6 @@ function renderSesiForm() {
     wrapper.appendChild(div);
   }
 
-  // Update indikator kelengkapan sesi
   const statusEl = document.getElementById("sesi-status");
   if (statusEl) {
     statusEl.innerHTML = `
@@ -317,7 +353,7 @@ async function submitSesi(i) {
   reader.readAsDataURL(file);
 }
 
-// FILTER LAPORAN
+// =========== Filter Laporan Saya ===========
 
 function populateTanggalOptions(laporanUser, bulanTahun) {
   const tanggalSet = new Set();
@@ -418,62 +454,24 @@ function setupFilters() {
   });
 }
 
-// Data master pilihan kategori (sesuaikan dengan data asli)
-const masterSubBidang = [
-  "Kepegawaian",
-  "Umum",
-  "Keuangan",
-  "Teknologi Informasi",
-  "Hukum",
-  "Pengawasan",
-  "Lainnya"
-];
+// =========== Profil Saya ===========
 
-const masterStatusKepegawaian = [
-  "PNS",
-  "Honorer",
-  "CPNS",
-  "Pegawai Kontrak",
-  "Lainnya"
-];
-
-const masterGolongan = [
-  "III/a", "III/b", "III/c", "III/d",
-  "IV/a", "IV/b", "IV/c", "IV/d", "IV/e"
-];
-
-const masterJabatan = [
-  "Staff",
-  "Kepala Sub Bagian",
-  "Kepala Bagian",
-  "Kepala Bidang",
-  "Sekretaris",
-  "Kepala Dinas",
-  "Lainnya"
-];
-
-// Fungsi muat data profil ke form
 function loadUserProfile() {
   if (!userData || !userData.nama) return;
 
-  // Isi input readonly
   document.getElementById('profil-nama').value = userData.nama || "";
   document.getElementById('profil-nip').value = userData.nip || "";
-
-  // Isi input editable
   document.getElementById('profil-email').value = userData.email || "";
 
-  // Isi pilihan dropdown
   populateSelect('profil-subbid', masterSubBidang, userData.subbid);
   populateSelect('profil-status', masterStatusKepegawaian, userData.status);
   populateSelect('profil-golongan', masterGolongan, userData.golongan);
   populateSelect('profil-jabatan', masterJabatan, userData.jabatan);
 }
 
-// Fungsi untuk isi dropdown dan set selected
 function populateSelect(id, options, selectedValue) {
   const select = document.getElementById(id);
-  select.innerHTML = ""; // bersihkan dulu
+  select.innerHTML = "";
 
   options.forEach(opt => {
     const optionEl = document.createElement('option');
@@ -484,11 +482,10 @@ function populateSelect(id, options, selectedValue) {
   });
 }
 
-// Submit form profil - update data di server
+// Submit profil form
 document.getElementById('profil-form').addEventListener('submit', async (e) => {
   e.preventDefault();
 
-  // Ambil data dari form
   const updatedData = {
     nama: document.getElementById('profil-nama').value,
     email: document.getElementById('profil-email').value.trim(),
@@ -499,7 +496,6 @@ document.getElementById('profil-form').addEventListener('submit', async (e) => {
     jabatan: document.getElementById('profil-jabatan').value
   };
 
-  // Validasi sederhana
   if(!updatedData.email){
     Swal.fire('Error', 'Email tidak boleh kosong.', 'error');
     return;
@@ -526,13 +522,14 @@ document.getElementById('profil-form').addEventListener('submit', async (e) => {
       method: 'POST',
       body: formData
     });
+
     const result = await res.json();
 
     if(result.success){
       Swal.close();
       Swal.fire('Berhasil', 'Data profil berhasil diperbarui.', 'success');
 
-      // Update localStorage dan userData
+      // Update localStorage & userData
       userData.email = updatedData.email;
       userData.subbid = updatedData.subbid;
       userData.status = updatedData.status;
@@ -547,6 +544,7 @@ document.getElementById('profil-form').addEventListener('submit', async (e) => {
   }
 });
 
+// =========== Logout ===========
 function logout() {
   localStorage.removeItem('userData');
   localStorage.removeItem('loginTime');
