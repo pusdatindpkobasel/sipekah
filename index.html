@@ -1,168 +1,312 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Laporan Kinerja Harian</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
-  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-  <style>
-    .card-sesi {
-      margin-bottom: 1rem;
-    }
-    @media (min-width: 768px) {
-      .login-dashboard-row {
-        flex-direction: row;
-        align-items: flex-end;
-      }
-    }
-    @media (max-width: 767.98px) {
-      .login-dashboard-row {
-        flex-direction: column;
-      }
-    }
-    .btn.disabled, .btn:disabled {
-  opacity: 0.65;
-  cursor: not-allowed;
-  pointer-events: none;
-}
-  #simple-calendar {
-  display: grid;
-  grid-template-columns: repeat(7, 1fr);
-  gap: 5px;
-  max-width: 100%; /* full lebar container */
-  margin-top: 1rem;
-  box-sizing: border-box;
-  padding: 0 5px; /* beri padding kiri kanan agar tidak nempel */
-  overflow-x: auto; /* agar bisa scroll horizontal jika sempit */
-}
-
-.day-header {
-  font-weight: bold;
-  background-color: #f0f0f0;
-  text-align: center;
-  padding: 8px 0;
-  border-bottom: 2px solid #ccc;
-  user-select: none;
-  font-size: 0.85rem;
-}
-
-.day-cell {
-  padding: 8px 0;
-  border: 1px solid #ccc;
-  text-align: center;
-  cursor: default;
-  user-select: none;
-  font-size: 0.9rem;
-  min-width: 32px; /* supaya cell tidak terlalu kecil */
-}
-
-/* Penanda hari ini */
-.day-today {
-  background-color: #ffff99; /* warna kuning muda untuk hari ini */
-  font-weight: bold;
-}
-
-/* Penanda hari sudah lapor */
-.day-reported {
-  background-color: #28a745; /* hijau */
-  color: white;
-}
-
-/* Hari ini yang sudah lapor */
-.day-today.day-reported {
-  background-color: #ffc107 !important; /* kuning keemasan, lebih tegas */
-  color: black !important; /* teks hitam agar jelas */
-  font-weight: bold;
-}
-
-/* Responsive untuk layar kecil */
-@media (max-width: 576px) {
-  #simple-calendar {
-    grid-template-columns: repeat(7, minmax(30px, 1fr)); /* lebih fleksibel */
-    font-size: 0.75rem;
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>SiPeKaH - Sistem Pelaporan Kinerja Harian</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet" />
+<style>
+  body {
+    margin: 0;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: row;
+    font-family: Arial, sans-serif;
   }
-  
-  .day-cell, .day-header {
-    padding: 6px 0;
+
+  #sidebar {
+    width: 240px;
+    background: #343a40;
+    color: white;
+    min-height: 100vh;
+    padding: 1rem;
+    position: fixed;
+    top: 0;
+    left: 0;
+    display: flex;
+    flex-direction: column;
+    transition: left 0.3s ease;
+    z-index: 1000;
   }
-}
-  </style>
+  #sidebar .logo {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-bottom: 2rem;
+    user-select: none;
+  }
+  #sidebar nav a {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem 1rem;
+    color: white;
+    text-decoration: none;
+    border-radius: 0.375rem;
+    margin-bottom: 0.25rem;
+  }
+  #sidebar nav a:hover,
+  #sidebar nav a.active {
+    background-color: #495057;
+    color: #ffc107;
+  }
+  #sidebar nav a .bi {
+    font-size: 1.2rem;
+  }
+  #sidebar .logout-btn {
+    margin-top: auto;
+    background: transparent;
+    border: none;
+    color: white;
+    cursor: pointer;
+    padding: 0.75rem 1rem;
+    text-align: left;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-size: 1rem;
+  }
+  #sidebar .logout-btn:hover {
+    background-color: #dc3545;
+    color: white;
+  }
+
+  #content {
+    margin-left: 240px;
+    flex-grow: 1;
+    padding: 1rem 2rem;
+    min-height: 100vh;
+  }
+
+  #mobile-header {
+    display: none;
+  }
+
+  @media (max-width: 768px) {
+    body {
+      flex-direction: column;
+    }
+
+    #mobile-header {
+      display: flex !important;
+      align-items: center;
+      justify-content: space-between;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 56px;
+      background: #343a40;
+      color: white;
+      padding: 0 1rem;
+      z-index: 1100;
+      user-select: none;
+    }
+    #mobile-header .logo {
+      font-weight: 700;
+      font-size: 1.25rem;
+    }
+    #hamburger-btn, #logout-button-mobile {
+      background: none;
+      border: none;
+      color: white;
+      font-size: 1.5rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+    }
+
+    #sidebar {
+      position: fixed;
+      top: 56px;
+      left: -250px;
+      width: 240px;
+      height: calc(100vh - 56px);
+      padding: 1rem;
+      flex-direction: column;
+      overflow-y: auto;
+      transition: left 0.3s ease;
+      z-index: 1050;
+    }
+    #sidebar.show {
+      left: 0;
+    }
+    #sidebar .logo {
+      margin-bottom: 2rem;
+      white-space: normal;
+    }
+    #sidebar nav {
+      flex-direction: column;
+    }
+    #sidebar nav a {
+      padding: 0.75rem 1rem;
+      margin-bottom: 0.25rem;
+    }
+    #sidebar .logout-btn {
+      margin-left: 0;
+      margin-top: auto;
+      padding: 0.75rem 1rem;
+    }
+
+    #content {
+      margin-left: 0;
+      margin-top: 56px;
+      padding: 1rem;
+    }
+  }
+
+  /* Kalender styling */
+  #simple-calendar {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 5px;
+    max-width: 100%;
+    margin-top: 1rem;
+    box-sizing: border-box;
+    padding: 0 5px;
+    overflow-x: auto;
+  }
+
+  .day-header {
+    font-weight: bold;
+    background-color: #f0f0f0;
+    text-align: center;
+    padding: 8px 0;
+    border-bottom: 2px solid #ccc;
+    user-select: none;
+    font-size: 0.85rem;
+  }
+
+  .day-cell {
+    padding: 8px 0;
+    border: 1px solid #ccc;
+    text-align: center;
+    cursor: default;
+    user-select: none;
+    font-size: 0.9rem;
+    min-width: 32px;
+  }
+
+  .day-today {
+    background-color: #ffff99;
+    font-weight: bold;
+  }
+
+  .day-reported {
+    background-color: #28a745;
+    color: white;
+  }
+
+  .day-today.day-reported {
+    background-color: #ffc107 !important;
+    color: black !important;
+    font-weight: bold;
+  }
+
+  @media (max-width: 576px) {
+    #simple-calendar {
+      grid-template-columns: repeat(7, minmax(30px, 1fr));
+      font-size: 0.75rem;
+    }
+
+    .day-cell, .day-header {
+      padding: 6px 0;
+    }
+  }
+</style>
 </head>
 <body>
-  <div class="container py-5">
-    <!-- Header dengan Judul dan Deskripsi Panduan -->
-    <header class="text-center mb-5">
-      <h1 class="display-4">SiPeKaH</h1>
-      <p class="lead">Sistem Pelaporan Kinerja Harian Pegawai</p>
-    </header>
 
-    <!-- Login + Dashboard -->
-    <form onsubmit="login(); return false;" class="d-flex flex-wrap gap-2 justify-content-center justify-content-sm-between align-items-center mb-4">
-      <select id="nama" class="form-select" style="min-width: 180px" required></select>
-      <input type="password" id="pin" class="form-control" placeholder="PIN" style="min-width: 100px" required />
-      <div class="d-flex gap-2">
-        <button type="submit" class="btn btn-dark d-flex align-items-center gap-1" id="login-button">
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-shield-lock" viewBox="0 0 16 16">
-            <path d="M5.5 8a1.5 1.5 0 1 1 3 0v1.086a1.5 1.5 0 1 1-3 0V8zm1.5-3a1 1 0 0 0-1 1v1.086a2.5 2.5 0 1 0 2 0V6a1 1 0 0 0-1-1z"/>
-            <path d="M8 0c-.69 0-1.37.116-2.015.337a4.992 4.992 0 0 0-1.63.965C3.373 2.088 2.25 3.375 1.56 5.001a9.26 9.26 0 0 0-.498 2.662c0 3.122 1.597 5.563 3.578 6.92C6.382 15.773 7.176 16 8 16s1.618-.227 2.36-.417c1.981-1.356 3.578-3.797 3.578-6.92a9.26 9.26 0 0 0-.498-2.662c-.69-1.626-1.813-2.913-2.795-3.699a4.992 4.992 0 0 0-1.63-.965A6.52 6.52 0 0 0 8 0z"/>
-          </svg>
-          Login
-        </button>
-      </div>
-    </form>
+<header id="mobile-header" role="banner">
+  <button id="hamburger-btn" aria-label="Toggle menu" aria-expanded="false" aria-controls="sidebar-menu">
+    <i class="bi bi-list"></i>
+  </button>
+  <div class="logo" tabindex="0">SiPeKaH</div>
+  <button id="logout-button-mobile" aria-label="Logout">
+    <i class="bi bi-box-arrow-right"></i>
+  </button>
+</header>
 
-    <!-- Form Wrapper (tampil setelah login) -->
-    <div id="form-wrapper" style="display:none;">
-      <div class="row">
-       <!-- Card Info Pegawai -->
-<div class="col-md-6 mb-4">
-  <div class="card">
-    <div class="card-body">
-      <h5 class="card-title mb-3">Informasi Pegawai</h5>
+<aside id="sidebar" role="navigation" aria-label="Sidebar utama">
+  <div class="logo" tabindex="0">SiPeKaH</div>
+  <nav id="sidebar-menu" aria-label="Menu Navigasi Utama">
+    <a href="#" class="active" data-page="beranda" aria-current="page"><i class="bi bi-house"></i> Beranda</a>
+    <a href="#" data-page="laporan"><i class="bi bi-file-text"></i> Laporan Saya</a>
+    <a href="#" data-page="profil"><i class="bi bi-person"></i> Profil Saya</a>
+    <a href="#" data-page="saran"><i class="bi bi-chat-dots"></i> Saran Peningkatan</a>
+  </nav>
+  <button class="logout-btn" id="logout-button" aria-label="Logout"><i class="bi bi-box-arrow-right"></i> Logout</button>
+</aside>
 
-      <div class="row mb-1">
-        <div class="col-4 fw-bold">NIP:</div>
-        <div class="col-8" id="nip"></div>
-      </div>
-      <div class="row mb-1">
-        <div class="col-4 fw-bold">Sub Bidang:</div>
-        <div class="col-8" id="subbid"></div>
-      </div>
-      <div class="row mb-1">
-        <div class="col-4 fw-bold">Status Kepegawaian:</div>
-        <div class="col-8" id="status"></div>
-      </div>
-      <div class="row mb-1">
-        <div class="col-4 fw-bold">Golongan:</div>
-        <div class="col-8" id="golongan"></div>
-      </div>
-      <div class="row mb-0">
-        <div class="col-4 fw-bold">Jabatan:</div>
-        <div class="col-8" id="jabatan"></div>
-      </div>
-
-      <!-- Tambahkan kalender di sini -->
-      <hr />
-      <h5 id="calendar-title" class="card-title mb-3">Kalender Laporan</h5>
-      <div id="simple-calendar"></div>
-    </div>
-  </div>
-</div>
-        <!-- Form Sesi dan Status -->
-        <div class="col-md-6">
-          <div id="sesi-status"></div>
-          <div id="sesi-form"></div>
+<main id="content" tabindex="-1">
+  <!-- Halaman Beranda -->
+  <section id="page-beranda" class="page-content">
+    <div class="row">
+      <div class="col-lg-6 mb-4">
+        <div class="card mb-3">
+          <div class="card-body">
+            <h5 class="card-title">Informasi Pegawai</h5>
+            <div id="info-pegawai"></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-body">
+            <h5 class="card-title" id="calendar-title">Kalender Laporan</h5>
+            <div id="simple-calendar"></div>
+          </div>
         </div>
       </div>
+      <div class="col-lg-6">
+        <div id="sesi-status"></div>
+        <div id="sesi-form"></div>
+      </div>
     </div>
-  </div>
+  </section>
 
-  
-<div id="footer-info" class="text-center mt-4 mb-3 text-muted" style="font-size: 0.9rem; display:none;">
-  Managed by Bagian Umum & Kepegawaian<br />
-  DPKO Basel
-</div>
+  <!-- Halaman Laporan Saya -->
+  <section id="page-laporan" class="page-content" style="display:none;">
+    <h2>Riwayat Laporan Saya</h2>
+    <div>
+      <div class="mb-3">
+        <label for="filter-bulan" class="form-label">Filter Bulan:</label>
+        <input type="month" id="filter-bulan" class="form-control" />
+      </div>
+      <div>
+        <table class="table table-striped" id="tabel-riwayat">
+          <thead>
+            <tr>
+              <th>Sesi</th>
+              <th>Keterangan Pekerjaan</th>
+              <th>Bukti Pendukung</th>
+            </tr>
+          </thead>
+          <tbody>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- Halaman Profil Saya -->
+  <section id="page-profil" class="page-content" style="display:none;">
+    <h2>Profil Saya</h2>
+    <div id="profil-content"></div>
+  </section>
+
+  <!-- Halaman Saran Peningkatan -->
+  <section id="page-saran" class="page-content" style="display:none;">
+    <h2>Saran Peningkatan</h2>
+    <form id="form-saran">
+      <div class="mb-3">
+        <label for="saran-text" class="form-label">Tulis Saran Anda:</label>
+        <textarea id="saran-text" class="form-control" rows="4" placeholder="Masukkan saran atau masukan..."></textarea>
+      </div>
+      <button type="submit" class="btn btn-primary">Kirim Saran</button>
+    </form>
+  </section>
+</main>
+
 <script src="script.js"></script>
+
 </body>
 </html>
