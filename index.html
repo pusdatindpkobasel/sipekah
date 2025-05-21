@@ -269,9 +269,15 @@
     <h2>Riwayat Laporan Saya</h2>
     <div>
       <div class="mb-3">
-        <label for="filter-bulan" class="form-label">Filter Bulan:</label>
-        <input type="month" id="filter-bulan" class="form-control" />
-      </div>
+  <label for="filter-bulan" class="form-label">Filter Bulan:</label>
+  <input type="month" id="filter-bulan" class="form-control" />
+</div>
+<div class="mb-3">
+  <label for="filter-tanggal" class="form-label">Filter Tanggal:</label>
+  <select id="filter-tanggal" class="form-select" disabled>
+    <option value="">-- Pilih Tanggal --</option>
+  </select>
+</div>
       <div>
         <table class="table table-striped" id="tabel-riwayat">
           <thead>
