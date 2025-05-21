@@ -418,6 +418,135 @@ function setupFilters() {
   });
 }
 
+// Data master pilihan kategori (sesuaikan dengan data asli)
+const masterSubBidang = [
+  "Kepegawaian",
+  "Umum",
+  "Keuangan",
+  "Teknologi Informasi",
+  "Hukum",
+  "Pengawasan",
+  "Lainnya"
+];
+
+const masterStatusKepegawaian = [
+  "PNS",
+  "Honorer",
+  "CPNS",
+  "Pegawai Kontrak",
+  "Lainnya"
+];
+
+const masterGolongan = [
+  "III/a", "III/b", "III/c", "III/d",
+  "IV/a", "IV/b", "IV/c", "IV/d", "IV/e"
+];
+
+const masterJabatan = [
+  "Staff",
+  "Kepala Sub Bagian",
+  "Kepala Bagian",
+  "Kepala Bidang",
+  "Sekretaris",
+  "Kepala Dinas",
+  "Lainnya"
+];
+
+// Fungsi muat data profil ke form
+function loadUserProfile() {
+  if (!userData || !userData.nama) return;
+
+  // Isi input readonly
+  document.getElementById('profil-nama').value = userData.nama || "";
+  document.getElementById('profil-nip').value = userData.nip || "";
+
+  // Isi input editable
+  document.getElementById('profil-email').value = userData.email || "";
+
+  // Isi pilihan dropdown
+  populateSelect('profil-subbid', masterSubBidang, userData.subbid);
+  populateSelect('profil-status', masterStatusKepegawaian, userData.status);
+  populateSelect('profil-golongan', masterGolongan, userData.golongan);
+  populateSelect('profil-jabatan', masterJabatan, userData.jabatan);
+}
+
+// Fungsi untuk isi dropdown dan set selected
+function populateSelect(id, options, selectedValue) {
+  const select = document.getElementById(id);
+  select.innerHTML = ""; // bersihkan dulu
+
+  options.forEach(opt => {
+    const optionEl = document.createElement('option');
+    optionEl.value = opt;
+    optionEl.textContent = opt;
+    if(opt === selectedValue) optionEl.selected = true;
+    select.appendChild(optionEl);
+  });
+}
+
+// Submit form profil - update data di server
+document.getElementById('profil-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+
+  // Ambil data dari form
+  const updatedData = {
+    nama: document.getElementById('profil-nama').value,
+    email: document.getElementById('profil-email').value.trim(),
+    nip: document.getElementById('profil-nip').value,
+    subbid: document.getElementById('profil-subbid').value,
+    status: document.getElementById('profil-status').value,
+    golongan: document.getElementById('profil-golongan').value,
+    jabatan: document.getElementById('profil-jabatan').value
+  };
+
+  // Validasi sederhana
+  if(!updatedData.email){
+    Swal.fire('Error', 'Email tidak boleh kosong.', 'error');
+    return;
+  }
+
+  Swal.fire({
+    title: 'Menyimpan data...',
+    didOpen: () => Swal.showLoading(),
+    allowOutsideClick: false
+  });
+
+  try {
+    const formData = new FormData();
+    formData.append('action', 'updatePegawai');
+    formData.append('nama', updatedData.nama);
+    formData.append('email', updatedData.email);
+    formData.append('nip', updatedData.nip);
+    formData.append('subbid', updatedData.subbid);
+    formData.append('status', updatedData.status);
+    formData.append('golongan', updatedData.golongan);
+    formData.append('jabatan', updatedData.jabatan);
+
+    const res = await fetch(WEB_APP_URL, {
+      method: 'POST',
+      body: formData
+    });
+    const result = await res.json();
+
+    if(result.success){
+      Swal.close();
+      Swal.fire('Berhasil', 'Data profil berhasil diperbarui.', 'success');
+
+      // Update localStorage dan userData
+      userData.email = updatedData.email;
+      userData.subbid = updatedData.subbid;
+      userData.status = updatedData.status;
+      userData.golongan = updatedData.golongan;
+      userData.jabatan = updatedData.jabatan;
+      localStorage.setItem('userData', JSON.stringify(userData));
+    } else {
+      Swal.fire('Gagal', result.message || 'Gagal memperbarui data.', 'error');
+    }
+  } catch (err) {
+    Swal.fire('Error', 'Terjadi kesalahan jaringan.', 'error');
+  }
+});
+
 function logout() {
   localStorage.removeItem('userData');
   localStorage.removeItem('loginTime');
