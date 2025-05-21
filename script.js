@@ -192,6 +192,87 @@ function loadSesiStatus() {
     });
 }
 
+// Tambahkan ini di bawah fungsi loadSesiStatus() atau di tempat yang pas
+
+function loadRiwayatLaporan(bulanTahun) {
+  // bulanTahun format: "YYYY-MM"
+  fetch(`${WEB_APP_URL}?action=getAllLaporan`)
+    .then(res => res.json())
+    .then(data => {
+      // Filter data user yang login dan bulan yang dipilih
+      const laporanUser = data.filter(item => {
+        if(item.nama !== userData.nama) return false;
+        if(!bulanTahun) return true; // kalau kosong, ambil semua
+
+        // Filter berdasarkan bulan dan tahun dari timestamp
+        const tanggal = new Date(item.timestamp);
+        const y = tanggal.getFullYear();
+        let m = tanggal.getMonth() + 1; // 1-based
+        m = m < 10 ? '0' + m : m;
+        const itemBulanTahun = `${y}-${m}`;
+        return itemBulanTahun === bulanTahun;
+      });
+
+      // Render tabel
+      const tbody = document.querySelector("#tabel-riwayat tbody");
+      tbody.innerHTML = "";
+
+      if (laporanUser.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="3" class="text-center">Belum ada laporan di bulan ini.</td></tr>`;
+        return;
+      }
+
+      laporanUser.forEach(laporan => {
+        // sesi: bisa kumpulan sesi, biasanya 7 sesi
+        // data laporannya ada di properti seperti sesi1, sesi2, ..., bukti1, bukti2, ...
+        // Kita tampilkan sesi per sesi
+
+        for(let i=1; i<=7; i++){
+          const sesiKey = `sesi${i}`;
+          const buktiKey = `bukti${i}`;
+          if(laporan[sesiKey]){
+            const row = document.createElement("tr");
+            row.innerHTML = `
+              <td>Sesi ${i}</td>
+              <td>${laporan[sesiKey]}</td>
+              <td>${laporan[buktiKey] ? `<a href="${laporan[buktiKey]}" target="_blank">Lihat Bukti</a>` : '-'}</td>
+            `;
+            tbody.appendChild(row);
+          }
+        }
+      });
+    })
+    .catch(err => {
+      console.error("Gagal load riwayat laporan:", err);
+    });
+}
+
+// Event listener untuk filter bulan
+const filterBulan = document.getElementById('filter-bulan');
+if(filterBulan){
+  filterBulan.addEventListener('change', (e) => {
+    loadRiwayatLaporan(e.target.value);
+  });
+}
+
+// Saat halaman siap dan user sudah login, load data laporan untuk bulan sekarang default
+window.onload = () => {
+  // ... kode login sudah ada sebelumnya ...
+
+  // Load riwayat laporan bulan ini (default)
+  const now = new Date();
+  let month = now.getMonth() + 1;
+  month = month < 10 ? '0' + month : month;
+  const year = now.getFullYear();
+  const defaultMonthYear = `${year}-${month}`;
+  if(filterBulan){
+    filterBulan.value = defaultMonthYear;
+  }
+  loadRiwayatLaporan(defaultMonthYear);
+
+  // kode lain tetap ...
+};
+
 function getJamSesi(i) {
   const jam = [
     "(07.30–08.30)", "(08.30–09.30)", "(09.30–10.30)", "(10.30–12.00)",
