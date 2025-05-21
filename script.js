@@ -26,14 +26,15 @@ window.onload = () => {
 
   userData = JSON.parse(savedUser);
 
+  setupNavigation();  // PENTING: harus dipanggil dulu
+
   showPage('beranda');
   displayUserInfo();
   renderSimpleCalendar();
   loadSesiStatus();
   setLogoutButton();
 
-  setupNavigation();
-
+  // Pasang event logout di tombol sidebar dan mobile
   document.getElementById('logout-button').addEventListener('click', logout);
   document.getElementById('logout-button-mobile').addEventListener('click', logout);
 };
@@ -76,7 +77,25 @@ function setupNavigation() {
     hamburgerBtn.setAttribute('aria-expanded', isShown);
   });
 
+  // Tampilkan halaman Beranda default saat setup
   showPage('beranda');
+}
+
+function showPage(pageId) {
+  const pages = document.querySelectorAll('.page-content');
+  pages.forEach(p => p.style.display = 'none');
+  document.getElementById(`page-${pageId}`).style.display = 'block';
+
+  const menuLinks = document.querySelectorAll('#sidebar-menu a');
+  menuLinks.forEach(link => {
+    if (link.dataset.page === pageId) {
+      link.classList.add('active');
+      link.setAttribute('aria-current', 'page');
+    } else {
+      link.classList.remove('active');
+      link.removeAttribute('aria-current');
+    }
+  });
 }
 
 function displayUserInfo() {
@@ -302,5 +321,5 @@ function logout() {
 }
 
 function setLogoutButton() {
-  // Logout button sudah ada di HTML, event listener diset di window.onload
+  // logout button sudah event listener nya di window.onload
 }
