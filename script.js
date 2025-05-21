@@ -1,243 +1,99 @@
 const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbxS9glVdvcS0yfMOeEdYxiTgjLbwc2F_TRwoxGG1dYh_3cAPqzFWnHUOOiLSdFgMZR3rA/exec';
 
-let pegawaiList = [], userData = {}, sesiStatus = {};
+let userData = {}, sesiStatus = {};
 
-// Fungsi callback JSONP (load pegawai)
-function handlePegawai(data) {
-  pegawaiList = data;
-  const namaSelect = document.getElementById("nama");
-  namaSelect.innerHTML = '<option value="">Pilih Nama</option>';
-  data.forEach(p => {
-    const opt = document.createElement("option");
-    opt.value = p[0];
-    opt.textContent = p[0];
-    namaSelect.appendChild(opt);
-  });
-}
-
-// Fungsi buat tombol dashboard dinamis (pas login)
-function createDashboardButton() {
-  // Cek kalau sudah ada, supaya gak bikin duplikat
-  if (!document.getElementById("dashboard-button")) {
-    const a = document.createElement('a');
-    a.href = "https://lookerstudio.google.com/u/0/reporting/1c845d81-5b0a-41c9-bdfc-39fd342d0a5b/page/chBKF";
-    a.target = "_blank";
-    a.className = "btn btn-success d-flex align-items-center gap-1";
-    a.id = "dashboard-button";
-
-    a.innerHTML = `
-      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" 
-           class="bi bi-bar-chart-line" viewBox="0 0 16 16">
-        <path d="M0 0h1v15h15v1H0V0z"/>
-        <path d="M10 10h1v3h-1v-3zM7 6h1v7H7V6zM4 9h1v4H4V9z"/>
-      </svg>
-      Dashboard
-    `;
-
-    // Tempel di sebelah tombol login (dalam form, div dengan class d-flex gap-2)
-    const formButtonDiv = document.querySelector('form .d-flex.gap-2');
-    if (formButtonDiv) {
-      formButtonDiv.appendChild(a);
-    } else {
-      // fallback ke form
-      document.querySelector('form').appendChild(a);
-    }
-  }
-}
-
-// Fungsi hapus tombol dashboard (pas logout)
-function removeDashboardButton() {
-  const btn = document.getElementById("dashboard-button");
-  if (btn) {
-    btn.remove();
-  }
-}
-
-// window.onload tanpa akses dashboard-button (karena belum ada)
 window.onload = () => {
-  const footer = document.getElementById("footer-info");
-  footer.style.display = "none";
-
-  // Load data pegawai via JSONP
-  const script = document.createElement('script');
-  script.src = `${WEB_APP_URL}?action=getPegawai&callback=handlePegawai`;
-  script.onerror = () => Swal.fire('Error', 'Gagal memuat data pegawai', 'error');
-  document.body.appendChild(script);
-
-  // Cek user login lama di localStorage
+  // Cek login user dari localStorage
   const savedUser = localStorage.getItem('userData');
   const loginTimeStr = localStorage.getItem('loginTime');
-
-  if (savedUser && loginTimeStr) {
-    const loginTime = new Date(loginTimeStr);
-    const now = new Date();
-    const diffMinutes = (now - loginTime) / 1000 / 60;
-
-    if (diffMinutes > 60) {
-      localStorage.removeItem('userData');
-      localStorage.removeItem('loginTime');
-      console.log('Login expired, localStorage cleared');
-    } else {
-      userData = JSON.parse(savedUser);
-
-      const intervalId = setInterval(() => {
-        if (pegawaiList.length > 0) {
-          clearInterval(intervalId);
-
-          const namaSelect = document.getElementById("nama");
-          namaSelect.value = userData.nama;
-          namaSelect.disabled = true;
-
-          document.getElementById("pin").disabled = true;
-
-          document.getElementById("nip").textContent = userData.nip;
-          document.getElementById("subbid").textContent = userData.subbid;
-          document.getElementById("status").textContent = userData.status;
-          document.getElementById("golongan").textContent = userData.golongan;
-          document.getElementById("jabatan").textContent = userData.jabatan;
-
-          document.getElementById("form-wrapper").style.display = "block";
-          footer.style.display = "block";
-
-          // Buat tombol dashboard
-          createDashboardButton();
-
-          setLogoutButton();
-          loadSesiStatus();
-          renderSimpleCalendar();
-        }
-      }, 100);
-    }
-  }
-
-  document.getElementById('pin').addEventListener('keydown', function(e) {
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      login();
-    }
-  });
-}
-
-// Fungsi login (tambah createDashboardButton)
-function login() {
-  const nama = document.getElementById("nama").value;
-  const pin = document.getElementById("pin").value;
-  const data = pegawaiList.find(p => p[0] === nama);
-  if (!data || pin !== data[7]) {
-    return Swal.fire("Gagal", "PIN salah", "error");
-  }
-
-  userData = {
-    nama: data[0],
-    nip: data[2],
-    subbid: data[3],
-    status: data[4],
-    golongan: data[5],
-    jabatan: data[6]
-  };
-
-  localStorage.setItem('userData', JSON.stringify(userData));
-  localStorage.setItem('loginTime', new Date().toISOString());
-
-  document.getElementById("nip").textContent = userData.nip;
-  document.getElementById("subbid").textContent = userData.subbid;
-  document.getElementById("status").textContent = userData.status;
-  document.getElementById("golongan").textContent = userData.golongan;
-  document.getElementById("jabatan").textContent = userData.jabatan;
-  document.getElementById("form-wrapper").style.display = "block";
-  document.getElementById("footer-info").style.display = "block";
-
-  createDashboardButton();
-
-  document.getElementById("nama").disabled = true;
-  document.getElementById("pin").disabled = true;
-
-  setLogoutButton();
-  showRemainingTime();
-  loadSesiStatus();
-  renderSimpleCalendar();
-}
-
-// Fungsi logout (hapus tombol dashboard)
-function logout() {
-  localStorage.removeItem('userData');
-  userData = {};
-  sesiStatus = {};
-
-  removeDashboardButton();
-
-  const footer = document.getElementById("footer-info");
-  footer.style.display = "none";
-
-  document.getElementById("nama").disabled = false;
-  document.getElementById("pin").disabled = false;
-  document.getElementById("pin").value = "";
-  document.getElementById("form-wrapper").style.display = "none";
-
-  const loginBtn = document.getElementById("login-button");
-  loginBtn.innerHTML = `
-    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" 
-         class="bi bi-shield-lock" viewBox="0 0 16 16">
-      <path d="M5.072 0a1.5 1.5 0 0 0-.832.252l-3 2A1.5 1.5 0 0 0 .5 3.5v3c0 4.418 3.582 8 8 8s8-3.582 8-8v-3a1.5 1.5 0 0 0-.74-1.276l-3-2A1.5 1.5 0 0 0 10.928 0H5.072z"/>
-      <path d="M8 5a1 1 0 0 1 1 1v1.5a1 1 0 0 1-2 0V6a1 1 0 0 1 1-1z"/>
-    </svg>
-    Login
-  `;
-  loginBtn.classList.remove("btn-danger");
-  loginBtn.classList.add("btn-dark");
-  loginBtn.onclick = login;
-}
-
-// Set tombol logout (setelah login berhasil)
-function setLogoutButton() {
-  const loginBtn = document.getElementById("login-button");
-  loginBtn.innerHTML = `
-    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" 
-         class="bi bi-box-arrow-right" viewBox="0 0 16 16">
-      <path fill-rule="evenodd" d="M6 3a.5.5 0 0 1 .5.5v9a.5.5 0 0 1-1 0v-9A.5.5 0 0 1 6 3z"/>
-      <path fill-rule="evenodd" d="M11.854 8.354a.5.5 0 0 1 0-.708L13.207 6.293a.5.5 0 1 1 .707.707L12.707 8l1.207 1.207a.5.5 0 0 1-.707.707l-1.353-1.353z"/>
-      <path fill-rule="evenodd" d="M4.5 8a.5.5 0 0 1 .5-.5h8a.5.5 0 0 1 0 1h-8a.5.5 0 0 1-.5-.5z"/>
-    </svg>
-    Logout
-  `;
-  loginBtn.classList.remove("btn-dark");
-  loginBtn.classList.add("btn-danger");
-  loginBtn.onclick = logout;
-}
-
-// Fungsi menampilkan notifikasi sisa waktu pengisian
-function showRemainingTime() {
   const now = new Date();
-  const closeTime = new Date();
-  closeTime.setHours(22, 0, 0, 0);
 
-  if (now >= closeTime) {
-    Swal.fire({
-      icon: 'info',
-      title: 'Waktu Pengisian Telah Berakhir',
-      text: 'Form pengisian sudah ditutup sampai jam 8 pagi besok.'
-    });
+  if (!savedUser || !loginTimeStr) {
+    // Belum login atau data hilang, redirect ke login
+    window.location.href = 'login.html';
     return;
   }
 
-  const diffMs = closeTime - now;
-  const diffH = Math.floor(diffMs / 3600000);
-  const diffM = Math.floor((diffMs % 3600000) / 60000);
+  const loginTime = new Date(loginTimeStr);
+  const diffMinutes = (now - loginTime) / 1000 / 60;
+  if (diffMinutes > 60) {
+    // Session expired
+    localStorage.removeItem('userData');
+    localStorage.removeItem('loginTime');
+    window.location.href = 'login.html';
+    return;
+  }
 
-  Swal.fire({
-    icon: 'info',
-    title: 'Sisa Waktu Pengisian',
-    text: `Anda memiliki waktu ${diffH} jam ${diffM} menit untuk mengisi form hari ini.`
+  userData = JSON.parse(savedUser);
+
+  showPage('beranda');
+  displayUserInfo();
+  renderSimpleCalendar();
+  loadSesiStatus();
+  setLogoutButton();
+
+  setupNavigation();
+
+  document.getElementById('logout-button').addEventListener('click', logout);
+  document.getElementById('logout-button-mobile').addEventListener('click', logout);
+};
+
+function setupNavigation() {
+  const menuLinks = document.querySelectorAll('#sidebar-menu a');
+  const pages = document.querySelectorAll('.page-content');
+  const sidebar = document.getElementById('sidebar');
+  const hamburgerBtn = document.getElementById('hamburger-btn');
+
+  function showPage(pageId) {
+    pages.forEach(p => p.style.display = 'none');
+    document.getElementById(`page-${pageId}`).style.display = 'block';
+
+    menuLinks.forEach(link => {
+      if (link.dataset.page === pageId) {
+        link.classList.add('active');
+        link.setAttribute('aria-current', 'page');
+      } else {
+        link.classList.remove('active');
+        link.removeAttribute('aria-current');
+      }
+    });
+  }
+
+  menuLinks.forEach(link => {
+    link.addEventListener('click', e => {
+      e.preventDefault();
+      showPage(link.dataset.page);
+
+      if(window.innerWidth <= 768){
+        sidebar.classList.remove('show');
+        hamburgerBtn.setAttribute('aria-expanded', false);
+      }
+    });
   });
+
+  hamburgerBtn.addEventListener('click', () => {
+    const isShown = sidebar.classList.toggle('show');
+    hamburgerBtn.setAttribute('aria-expanded', isShown);
+  });
+
+  showPage('beranda');
 }
 
-// Fungsi untuk render simple calendar bulan sekarang, dan tandai hari dengan laporan user
+function displayUserInfo() {
+  document.getElementById("info-pegawai").innerHTML = `
+    <div class="row mb-1"><div class="col-4 fw-bold">NIP:</div><div class="col-8">${userData.nip}</div></div>
+    <div class="row mb-1"><div class="col-4 fw-bold">Sub Bidang:</div><div class="col-8">${userData.subbid}</div></div>
+    <div class="row mb-1"><div class="col-4 fw-bold">Status Kepegawaian:</div><div class="col-8">${userData.status}</div></div>
+    <div class="row mb-1"><div class="col-4 fw-bold">Golongan:</div><div class="col-8">${userData.golongan}</div></div>
+    <div class="row mb-0"><div class="col-4 fw-bold">Jabatan:</div><div class="col-8">${userData.jabatan}</div></div>
+  `;
+}
+
 function renderSimpleCalendar() {
   const calendarEl = document.getElementById("simple-calendar");
-  const calendarTitle = document.getElementById("calendar-title"); // ambil elemen judul
+  const calendarTitle = document.getElementById("calendar-title");
   if (!calendarEl || !calendarTitle) return;
 
-  // Nama bulan bahasa Indonesia
   const bulanNames = ["Januari", "Februari", "Maret", "April", "Mei", "Juni",
                       "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
 
@@ -245,17 +101,13 @@ function renderSimpleCalendar() {
   const year = now.getFullYear();
   const month = now.getMonth();
 
-  // Set judul kalender dengan nama bulan dan tahun sekarang
   calendarTitle.textContent = `Kalender Laporan ${bulanNames[month]} ${year}`;
 
-  // Ambil laporan user hari-hari yang sudah ada
   fetch(`${WEB_APP_URL}?action=getAllLaporan`)
     .then(res => res.json())
     .then(data => {
-      // Filter hanya laporan milik user yang login
       const laporanUser = data.filter(item => item.nama === userData.nama);
 
-      // Buat set tanggal yang sudah ada laporan (format yyyy-mm-dd)
       const laporanDates = new Set(
         laporanUser.map(item => {
           const d = new Date(item.timestamp);
@@ -263,17 +115,12 @@ function renderSimpleCalendar() {
         })
       );
 
-      // Dapatkan hari pertama bulan ini (0=minggu, 1=senin, ...)
       const firstDay = new Date(year, month, 1);
       const firstWeekday = firstDay.getDay();
-
-      // Dapatkan jumlah hari dalam bulan ini
       const daysInMonth = new Date(year, month + 1, 0).getDate();
 
-      // Kosongkan kalender dulu
       calendarEl.innerHTML = "";
 
-      // --- Tambahkan baris header hari ---
       const daysOfWeek = ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'];
       daysOfWeek.forEach(day => {
         const headerCell = document.createElement("div");
@@ -282,23 +129,19 @@ function renderSimpleCalendar() {
         calendarEl.appendChild(headerCell);
       });
 
-      // Buat sel kosong untuk mengisi offset sebelum hari pertama (agar grid rata kiri)
       for (let i = 0; i < firstWeekday; i++) {
         const emptyCell = document.createElement("div");
         emptyCell.className = "day-cell";
         calendarEl.appendChild(emptyCell);
       }
 
-      // Buat cell untuk setiap tanggal
       for (let day = 1; day <= daysInMonth; day++) {
         const cell = document.createElement("div");
         cell.className = "day-cell";
 
-        // Format tanggal untuk cek laporan
         const dateStr = new Date(year, month, day).toISOString().split('T')[0];
         cell.textContent = day;
 
-        // Tandai hari ini
         const today = new Date();
         if (
           day === today.getDate() &&
@@ -308,7 +151,6 @@ function renderSimpleCalendar() {
           cell.classList.add("day-today");
         }
 
-        // Tandai hari sudah lapor dengan warna hijau
         if (laporanDates.has(dateStr)) {
           cell.classList.add("day-reported");
           cell.title = "Sudah melapor pada tanggal ini";
@@ -322,7 +164,6 @@ function renderSimpleCalendar() {
     });
 }
 
-// Fungsi load status sesi kerja dari server
 function loadSesiStatus() {
   fetch(`${WEB_APP_URL}?action=getLaporan&nama=${userData.nama}`)
     .then(res => res.json())
@@ -332,7 +173,6 @@ function loadSesiStatus() {
     });
 }
 
-// Fungsi menampilkan jam sesi kerja (for label)
 function getJamSesi(i) {
   const jam = [
     "(07.30–08.30)", "(08.30–09.30)", "(09.30–10.30)", "(10.30–12.00)",
@@ -341,7 +181,6 @@ function getJamSesi(i) {
   return jam[i - 1] || "";
 }
 
-// Fungsi render form sesi kerja per sesi
 function renderSesiForm() {
   const wrapper = document.getElementById("sesi-form");
   wrapper.innerHTML = "";
@@ -373,7 +212,6 @@ function renderSesiForm() {
     wrapper.appendChild(div);
   }
 
-  // Update indikator kelengkapan sesi
   const statusEl = document.getElementById("sesi-status");
   if (statusEl) {
     statusEl.innerHTML = `
@@ -384,7 +222,6 @@ function renderSesiForm() {
   }
 }
 
-// Fungsi submit sesi dengan upload file dan data form
 async function submitSesi(i) {
   const pekerjaan = document.getElementById(`sesi${i}`).value.trim();
   const file = document.getElementById(`file${i}`).files[0];
@@ -454,4 +291,16 @@ async function submitSesi(i) {
     }
   };
   reader.readAsDataURL(file);
+}
+
+function logout() {
+  localStorage.removeItem('userData');
+  localStorage.removeItem('loginTime');
+  userData = {};
+  sesiStatus = {};
+  window.location.href = 'login.html';
+}
+
+function setLogoutButton() {
+  // Logout button sudah ada di HTML, event listener diset di window.onload
 }
