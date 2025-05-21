@@ -7,6 +7,7 @@
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
 <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet" />
 <style>
+  /* Reset dan body */
   body {
     margin: 0;
     min-height: 100vh;
@@ -15,6 +16,7 @@
     font-family: Arial, sans-serif;
   }
 
+  /* Sidebar desktop */
   #sidebar {
     width: 240px;
     background: #343a40;
@@ -44,7 +46,6 @@
     text-decoration: none;
     border-radius: 0.375rem;
     margin-bottom: 0.25rem;
-    cursor: pointer;
   }
   #sidebar nav a:hover,
   #sidebar nav a.active {
@@ -72,6 +73,7 @@
     color: white;
   }
 
+  /* Konten utama */
   #content {
     margin-left: 240px;
     flex-grow: 1;
@@ -79,15 +81,17 @@
     min-height: 100vh;
   }
 
+  /* HEADER MOBILE */
   #mobile-header {
-    display: none;
+    display: none; /* default sembunyi */
   }
 
+  /* Responsive untuk mobile */
   @media (max-width: 768px) {
     body {
       flex-direction: column;
     }
-
+    /* Tampilkan header mobile */
     #mobile-header {
       display: flex !important;
       align-items: center;
@@ -117,10 +121,11 @@
       align-items: center;
     }
 
+    /* Sidebar hidden by default on mobile */
     #sidebar {
       position: fixed;
-      top: 56px;
-      left: -250px;
+      top: 56px; /* di bawah header mobile */
+      left: -250px; /* tersembunyi */
       width: 240px;
       height: calc(100vh - 56px);
       padding: 1rem;
@@ -149,6 +154,7 @@
       padding: 0.75rem 1rem;
     }
 
+    /* Konten utama */
     #content {
       margin-left: 0;
       margin-top: 56px;
@@ -156,7 +162,7 @@
     }
   }
 
-  /* Kalender styling */
+  /* Kalender dan sesi */
   #simple-calendar {
     display: grid;
     grid-template-columns: repeat(7, 1fr);
@@ -167,7 +173,6 @@
     padding: 0 5px;
     overflow-x: auto;
   }
-
   .day-header {
     font-weight: bold;
     background-color: #f0f0f0;
@@ -177,7 +182,6 @@
     user-select: none;
     font-size: 0.85rem;
   }
-
   .day-cell {
     padding: 8px 0;
     border: 1px solid #ccc;
@@ -187,37 +191,24 @@
     font-size: 0.9rem;
     min-width: 32px;
   }
-
   .day-today {
     background-color: #ffff99;
     font-weight: bold;
   }
-
   .day-reported {
     background-color: #28a745;
     color: white;
   }
-
   .day-today.day-reported {
     background-color: #ffc107 !important;
     color: black !important;
     font-weight: bold;
   }
-
-  @media (max-width: 576px) {
-    #simple-calendar {
-      grid-template-columns: repeat(7, minmax(30px, 1fr));
-      font-size: 0.75rem;
-    }
-
-    .day-cell, .day-header {
-      padding: 6px 0;
-    }
-  }
 </style>
 </head>
 <body>
 
+<!-- Header Mobile -->
 <header id="mobile-header" role="banner">
   <button id="hamburger-btn" aria-label="Toggle menu" aria-expanded="false" aria-controls="sidebar-menu">
     <i class="bi bi-list"></i>
@@ -228,6 +219,7 @@
   </button>
 </header>
 
+<!-- Sidebar -->
 <aside id="sidebar" role="navigation" aria-label="Sidebar utama">
   <div class="logo" tabindex="0">SiPeKaH</div>
   <nav id="sidebar-menu" aria-label="Menu Navigasi Utama">
@@ -239,6 +231,7 @@
   <button class="logout-btn" id="logout-button" aria-label="Logout"><i class="bi bi-box-arrow-right"></i> Logout</button>
 </aside>
 
+<!-- Konten utama -->
 <main id="content" tabindex="-1">
   <!-- Halaman Beranda -->
   <section id="page-beranda" class="page-content">
@@ -269,15 +262,15 @@
     <h2>Riwayat Laporan Saya</h2>
     <div>
       <div class="mb-3">
-  <label for="filter-bulan" class="form-label">Filter Bulan:</label>
-  <input type="month" id="filter-bulan" class="form-control" />
-</div>
-<div class="mb-3">
-  <label for="filter-tanggal" class="form-label">Filter Tanggal:</label>
-  <select id="filter-tanggal" class="form-select" disabled>
-    <option value="">-- Pilih Tanggal --</option>
-  </select>
-</div>
+        <label for="filter-bulan" class="form-label">Filter Bulan:</label>
+        <input type="month" id="filter-bulan" class="form-control" />
+      </div>
+      <div class="mb-3">
+        <label for="filter-tanggal" class="form-label">Filter Tanggal:</label>
+        <select id="filter-tanggal" class="form-select" disabled>
+          <option value="">-- Pilih Tanggal --</option>
+        </select>
+      </div>
       <div>
         <table class="table table-striped" id="tabel-riwayat">
           <thead>
@@ -288,6 +281,7 @@
             </tr>
           </thead>
           <tbody>
+            <!-- Isi data dinamis di JS -->
           </tbody>
         </table>
       </div>
@@ -311,10 +305,8 @@
       <button type="submit" class="btn btn-primary">Kirim Saran</button>
     </form>
   </section>
-
 </main>
 
 <script src="script.js"></script>
-
 </body>
 </html>
