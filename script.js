@@ -19,8 +19,8 @@ const masterStatusKepegawaian = [
 ];
 
 const masterGolongan = [
-  "III/a", "III/b", "III/c", "III/d",
-  "IV/a", "IV/b", "IV/c", "IV/d", "IV/e"
+  "II/a", "II/b", "II/c", "II/d", "III/a", "III/b", "III/c", "III/d",
+  "IV/a", "IV/b", "IX", "VII", "VI", "V"
 ];
 
 const masterJabatan = [
@@ -396,18 +396,19 @@ function loadRiwayatLaporan(bulanTahun, tanggalFilter = "") {
   fetch(`${WEB_APP_URL}?action=getAllLaporan`)
     .then(res => res.json())
     .then(data => {
+      // Filter data berdasarkan nama dan bulan/tanggal yang dipilih
       const laporanUser = data.filter(item => {
-        if(item.nama !== userData.nama) return false;
-        if(!bulanTahun) return true;
+        if (item.nama !== userData.nama) return false;
+        if (!bulanTahun) return true;
 
         const tanggal = new Date(item.timestamp);
         const y = tanggal.getFullYear();
         let m = tanggal.getMonth() + 1;
         m = m < 10 ? '0' + m : m;
         const itemBulanTahun = `${y}-${m}`;
-        if(itemBulanTahun !== bulanTahun) return false;
+        if (itemBulanTahun !== bulanTahun) return false;
 
-        if(tanggalFilter){
+        if (tanggalFilter) {
           let d = tanggal.getDate();
           d = d < 10 ? '0' + d : d;
           const fullTanggal = `${y}-${m}-${d}`;
@@ -426,16 +427,19 @@ function loadRiwayatLaporan(bulanTahun, tanggalFilter = "") {
         return;
       }
 
+      // Iterasi laporan user
       laporanUser.forEach(laporan => {
-        for(let i=1; i<=7; i++){
+        for (let i = 1; i <= 7; i++) {
           const sesiKey = `sesi${i}`;
           const buktiKey = `bukti${i}`;
-          if(laporan[sesiKey]){
+          if (laporan[sesiKey]) {
             const row = document.createElement("tr");
             row.innerHTML = `
               <td>Sesi ${i}</td>
               <td>${laporan[sesiKey]}</td>
-              <td>${laporan[buktiKey] ? `<a href="${laporan[buktiKey]}" target="_blank">Lihat Bukti</a>` : '-'}</td>
+              <td>
+                ${laporan[buktiKey] ? `<a href="${laporan[buktiKey]}" target="_blank">Lihat Bukti</a>` : '-'}
+              </td>
             `;
             tbody.appendChild(row);
           }
