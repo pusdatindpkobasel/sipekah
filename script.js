@@ -1,27 +1,44 @@
 const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbxS9glVdvcS0yfMOeEdYxiTgjLbwc2F_TRwoxGG1dYh_3cAPqzFWnHUOOiLSdFgMZR3rA/exec';
 
 let userData = {}, sesiStatus = {};
-let filterBulan, filterTanggal; // deklarasi global tapi isi nanti di window.onload
+const filterBulan = document.getElementById('filter-bulan');
+const filterTanggal = document.getElementById('filter-tanggal');
 
 // Data master pilihan kategori untuk Profil Saya
 const masterSubBidang = [
-  "Kepegawaian", "Umum", "Keuangan", "Teknologi Informasi", "Hukum", "Pengawasan", "Lainnya"
+  "Kepegawaian",
+  "Umum",
+  "Keuangan",
+  "Teknologi Informasi",
+  "Hukum",
+  "Pengawasan",
+  "Lainnya"
 ];
+
 const masterStatusKepegawaian = [
-  "PNS", "Honorer", "CPNS", "Pegawai Kontrak", "Lainnya"
+  "PNS",
+  "Honorer",
+  "CPNS",
+  "Pegawai Kontrak",
+  "Lainnya"
 ];
+
 const masterGolongan = [
-  "III/a", "III/b", "III/c", "III/d", "IV/a", "IV/b", "IV/c", "IV/d", "IV/e"
+  "III/a", "III/b", "III/c", "III/d",
+  "IV/a", "IV/b", "IV/c", "IV/d", "IV/e"
 ];
+
 const masterJabatan = [
-  "Staff", "Kepala Sub Bagian", "Kepala Bagian", "Kepala Bidang", "Sekretaris", "Kepala Dinas", "Lainnya"
+  "Staff",
+  "Kepala Sub Bagian",
+  "Kepala Bagian",
+  "Kepala Bidang",
+  "Sekretaris",
+  "Kepala Dinas",
+  "Lainnya"
 ];
 
 window.onload = () => {
-  // Ambil elemen filter setelah DOM siap
-  filterBulan = document.getElementById('filter-bulan');
-  filterTanggal = document.getElementById('filter-tanggal');
-
   // Cek login user dari localStorage
   const savedUser = localStorage.getItem('userData');
   const loginTimeStr = localStorage.getItem('loginTime');
@@ -51,7 +68,7 @@ window.onload = () => {
   loadSesiStatus();
   setLogoutButton();
 
-  setupFilters(filterBulan, filterTanggal);
+  setupFilters();
 
   // Load default riwayat laporan bulan ini tanpa filter tanggal
   let month = now.getMonth() + 1;
@@ -63,13 +80,25 @@ window.onload = () => {
   loadRiwayatLaporan(defaultMonthYear, "");
 
   // Load data profil saat buka halaman profil
+  // Kalau halaman profil aktif langsung load user profile
   if(document.getElementById('page-profil').style.display !== 'none'){
     loadUserProfile();
   }
 
-  // Pasang event logout
+  // Logout button event listeners
   document.getElementById('logout-button').addEventListener('click', logout);
   document.getElementById('logout-button-mobile').addEventListener('click', logout);
+
+  // Event delegation untuk tombol kirim sesi
+  document.getElementById('sesi-form').addEventListener('click', function(event) {
+    const target = event.target;
+    if (target && target.tagName === 'BUTTON' && target.id.startsWith('btn-kirim-sesi')) {
+      const sesiNum = parseInt(target.id.replace('btn-kirim-sesi',''));
+      if (!isNaN(sesiNum)) {
+        submitSesi(sesiNum);
+      }
+    }
+  });
 };
 
 function setupNavigation() {
@@ -263,21 +292,12 @@ function renderSesiForm() {
     `;
   }
 
-  // Pasang event listener untuk tombol kirim sesi yg baru dibuat (hanya yg belum diisi)
-  for(let i=1; i<=7; i++){
-    if(!sesiStatus[`sesi${i}`]){
-      const btn = document.getElementById(`btn-kirim-sesi${i}`);
-      if(btn){
-        btn.addEventListener('click', () => submitSesi(i));
-      }
-    }
-  }
+  console.log('renderSesiForm called, totalIsi:', totalIsi);
 }
 
 async function submitSesi(i) {
   const pekerjaan = document.getElementById(`sesi${i}`).value.trim();
-  const fileInput = document.getElementById(`file${i}`);
-  const file = fileInput ? fileInput.files[0] : null;
+  const file = document.getElementById(`file${i}`).files[0];
 
   if (!pekerjaan || !file) {
     Swal.fire("Isi uraian & pilih file", "", "warning");
@@ -433,7 +453,7 @@ function loadRiwayatLaporan(bulanTahun, tanggalFilter = "") {
     });
 }
 
-function setupFilters(filterBulan, filterTanggal) {
+function setupFilters() {
   filterBulan.addEventListener('change', (e) => {
     const bulan = e.target.value;
     filterTanggal.value = "";
@@ -545,14 +565,10 @@ function logout() {
   window.location.href = 'login.html';
 }
 
-// setLogoutButton bisa dipakai untuk setting button logout tambahan jika dibutuhkan
+// Pasang logout button listener kalau tombol logout dinamis atau belum terpasang saat onload
 function setLogoutButton() {
-  const logoutBtn = document.getElementById('logout-button');
-  if(logoutBtn){
-    logoutBtn.addEventListener('click', logout);
-  }
-  const logoutBtnMobile = document.getElementById('logout-button-mobile');
-  if(logoutBtnMobile){
-    logoutBtnMobile.addEventListener('click', logout);
-  }
+  const btn1 = document.getElementById('logout-button');
+  if(btn1) btn1.onclick = logout;
+  const btn2 = document.getElementById('logout-button-mobile');
+  if(btn2) btn2.onclick = logout;
 }
