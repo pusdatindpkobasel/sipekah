@@ -361,8 +361,7 @@ async function submitSesi(i) {
   reader.readAsDataURL(file);
 }
 
-// =========== Filter Laporan Saya ===========
-
+// =========== Filter Laporan Saya ==========
 function setupFilters() {
   filterBulan.addEventListener('change', (e) => {
     const bulan = e.target.value;
@@ -461,7 +460,6 @@ function populateTanggalOptions(laporanUser, bulanTahun) {
     });
   }
 }
-
 // =========== Profil Saya ===========
 
 function loadUserProfile() {
