@@ -64,6 +64,7 @@ window.onload = () => {
   setupFilters();
 
   // Load default riwayat laporan bulan ini tanpa filter tanggal
+
   let month = now.getMonth() + 1;
   month = month < 10 ? '0' + month : month;
   const year = now.getFullYear();
@@ -362,6 +363,75 @@ async function submitSesi(i) {
 
 // =========== Filter Laporan Saya ===========
 
+function setupFilters() {
+  filterBulan.addEventListener('change', (e) => {
+    const bulan = e.target.value;
+    filterTanggal.value = "";
+    loadRiwayatLaporan(bulan, "");
+  });
+
+  filterTanggal.addEventListener('change', (e) => {
+    const tanggal = e.target.value;
+    const bulan = filterBulan.value;
+    loadRiwayatLaporan(bulan, tanggal);
+  });
+}
+
+function loadRiwayatLaporan(bulanTahun, tanggalFilter = "") {
+  fetch(`${WEB_APP_URL}?action=getAllLaporan`)
+    .then(res => res.json())
+    .then(data => {
+      const laporanUser = data.filter(item => {
+        if(item.nama !== userData.nama) return false;
+        if(!bulanTahun) return true;
+
+        const tanggal = new Date(item.timestamp);
+        const y = tanggal.getFullYear();
+        let m = tanggal.getMonth() + 1;
+        m = m < 10 ? '0' + m : m;
+        const itemBulanTahun = `${y}-${m}`;
+        if(itemBulanTahun !== bulanTahun) return false;
+
+        if(tanggalFilter){
+          let d = tanggal.getDate();
+          d = d < 10 ? '0' + d : d;
+          const fullTanggal = `${y}-${m}-${d}`;
+          return fullTanggal === tanggalFilter;
+        }
+        return true;
+      });
+
+      populateTanggalOptions(data.filter(item => item.nama === userData.nama), bulanTahun);
+
+      const tbody = document.querySelector("#tabel-riwayat tbody");
+      tbody.innerHTML = "";
+
+      if (laporanUser.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="3" class="text-center">Belum ada laporan di periode ini.</td></tr>`;
+        return;
+      }
+
+      laporanUser.forEach(laporan => {
+        for(let i=1; i<=7; i++){
+          const sesiKey = `Sesi ${i}`;
+          const buktiKey = `Bukti ${i}`;
+          if(laporan[sesiKey]){
+            const row = document.createElement("tr");
+            row.innerHTML = `
+              <td>${sesiKey}</td>
+              <td>${laporan[sesiKey]}</td>
+              <td>${laporan[buktiKey] ? `<a href="${laporan[buktiKey]}" target="_blank">Lihat Bukti</a>` : '-'}</td>
+            `;
+            tbody.appendChild(row);
+          }
+        }
+      });
+    })
+    .catch(err => {
+      console.error("Gagal load riwayat laporan:", err);
+    });
+}
+
 function populateTanggalOptions(laporanUser, bulanTahun) {
   const tanggalSet = new Set();
 
@@ -390,79 +460,6 @@ function populateTanggalOptions(laporanUser, bulanTahun) {
       filterTanggal.appendChild(opt);
     });
   }
-}
-
-function loadRiwayatLaporan(bulanTahun, tanggalFilter = "") {
-  fetch(`${WEB_APP_URL}?action=getAllLaporan`)
-    .then(res => res.json())
-    .then(data => {
-      // Filter data berdasarkan nama dan bulan/tanggal yang dipilih
-      const laporanUser = data.filter(item => {
-        if (item.nama !== userData.nama) return false;
-        if (!bulanTahun) return true;
-
-        const tanggal = new Date(item.timestamp);
-        const y = tanggal.getFullYear();
-        let m = tanggal.getMonth() + 1;
-        m = m < 10 ? '0' + m : m;
-        const itemBulanTahun = `${y}-${m}`;
-        if (itemBulanTahun !== bulanTahun) return false;
-
-        if (tanggalFilter) {
-          let d = tanggal.getDate();
-          d = d < 10 ? '0' + d : d;
-          const fullTanggal = `${y}-${m}-${d}`;
-          return fullTanggal === tanggalFilter;
-        }
-        return true;
-      });
-
-      populateTanggalOptions(data.filter(item => item.nama === userData.nama), bulanTahun);
-
-      const tbody = document.querySelector("#tabel-riwayat tbody");
-      tbody.innerHTML = "";
-
-      if (laporanUser.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="3" class="text-center">Belum ada laporan di periode ini.</td></tr>`;
-        return;
-      }
-
-      // Iterasi laporan user
-      laporanUser.forEach(laporan => {
-        for (let i = 1; i <= 7; i++) {
-          const sesiKey = `sesi${i}`;
-          const buktiKey = `bukti${i}`;
-          if (laporan[sesiKey]) {
-            const row = document.createElement("tr");
-            row.innerHTML = `
-              <td>Sesi ${i}</td>
-              <td>${laporan[sesiKey]}</td>
-              <td>
-                ${laporan[buktiKey] ? `<a href="${laporan[buktiKey]}" target="_blank">Lihat Bukti</a>` : '-'}
-              </td>
-            `;
-            tbody.appendChild(row);
-          }
-        }
-      });
-    })
-    .catch(err => {
-      console.error("Gagal load riwayat laporan:", err);
-    });
-}
-
-function setupFilters() {
-  filterBulan.addEventListener('change', (e) => {
-    const bulan = e.target.value;
-    filterTanggal.value = "";
-    loadRiwayatLaporan(bulan, "");
-  });
-
-  filterTanggal.addEventListener('change', (e) => {
-    const tanggal = e.target.value;
-    const bulan = filterBulan.value;
-    loadRiwayatLaporan(bulan, tanggal);
-  });
 }
 
 // =========== Profil Saya ===========
