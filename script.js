@@ -400,7 +400,8 @@ function loadRiwayatLaporan(bulanTahun, tanggalFilter = "") {
         return true;
       });
 
-      populateTanggalOptions(data.filter(item => item.nama === userData.nama), bulanTahun);
+      // Kirim tanggalFilter agar tanggal tetap terpilih di dropdown
+      populateTanggalOptions(data.filter(item => item.nama === userData.nama), bulanTahun, tanggalFilter);
 
       const tbody = document.querySelector("#tabel-riwayat tbody");
       tbody.innerHTML = "";
@@ -431,7 +432,7 @@ function loadRiwayatLaporan(bulanTahun, tanggalFilter = "") {
     });
 }
 
-function populateTanggalOptions(laporanUser, bulanTahun) {
+function populateTanggalOptions(laporanUser, bulanTahun, selectedTanggal = "") {
   const tanggalSet = new Set();
 
   laporanUser.forEach(item => {
@@ -456,6 +457,7 @@ function populateTanggalOptions(laporanUser, bulanTahun) {
       const opt = document.createElement('option');
       opt.value = tgl;
       opt.textContent = tgl;
+      if(tgl === selectedTanggal) opt.selected = true;  // <-- Tetap pilih tanggal yang dipilih
       filterTanggal.appendChild(opt);
     });
   }
