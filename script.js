@@ -146,6 +146,7 @@ function setupNavigation() {
 
 function displayUserInfo() {
   document.getElementById("info-pegawai").innerHTML = `
+    <div class="row mb-1"><div class="col-4 fw-bold">Nama Pegawai:</div><div class="col-8">${userData.nama}</div></div>
     <div class="row mb-1"><div class="col-4 fw-bold">NIP:</div><div class="col-8">${userData.nip}</div></div>
     <div class="row mb-1"><div class="col-4 fw-bold">Sub Bidang:</div><div class="col-8">${userData.subbid}</div></div>
     <div class="row mb-1"><div class="col-4 fw-bold">Status Kepegawaian:</div><div class="col-8">${userData.status}</div></div>
