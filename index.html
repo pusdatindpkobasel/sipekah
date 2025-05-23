@@ -290,6 +290,59 @@
     </div>
   </section>
 
+ <!-- Section Capaian Kinerja -->
+<section id="page-capaian-kinerja" class="page-content" style="display:none;">
+  <h2>Capaian Kinerja</h2>
+
+  <!-- Filter Bulan -->
+  <div class="mb-3">
+    <label for="filter-bulan-capaian" class="form-label">Filter Bulan:</label>
+    <input type="month" id="filter-bulan-capaian" class="form-control" />
+  </div>
+
+  <!-- Grafik pekerjaan harian -->
+  <div>
+    <canvas id="grafik-capaian-kinerja" width="100%" height="40"></canvas>
+  </div>
+
+  <!-- Statistik overview cards -->
+  <div class="row mt-4" id="statistik-capaian">
+    <div class="col-md-3 col-sm-6 mb-3">
+      <div class="card text-white bg-primary h-100">
+        <div class="card-body">
+          <h5 class="card-title">Jumlah Laporan</h5>
+          <p id="stat-laporan" class="card-text fs-2">0</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3 col-sm-6 mb-3">
+      <div class="card text-white bg-success h-100">
+        <div class="card-body">
+          <h5 class="card-title">Sesi Terisi</h5>
+          <p id="stat-sesi-terisi" class="card-text fs-2">0</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3 col-sm-6 mb-3">
+      <div class="card text-white bg-info h-100">
+        <div class="card-body">
+          <h5 class="card-title">Total Jam Kerja</h5>
+          <p id="stat-jam-kerja" class="card-text fs-2">0</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3 col-sm-6 mb-3">
+      <div class="card text-white bg-danger h-100">
+        <div class="card-body">
+          <h5 class="card-title">Kekurangan Jam Kerja</h5>
+          <p id="stat-kekurangan-jam" class="card-text fs-2">0</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
   <!-- Halaman Profil Saya -->
   <section id="page-profil" class="page-content" style="display:none;">
     <h2>Profil Saya</h2>
