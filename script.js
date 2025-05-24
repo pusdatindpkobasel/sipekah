@@ -4,6 +4,152 @@ let userData = {}, sesiStatus = {};
 const filterBulan = document.getElementById('filter-bulan');
 const filterTanggal = document.getElementById('filter-tanggal');
 
+// Durasi tiap sesi dalam jam
+const durasiSesi = [1,1,1,1.5,1,1,1]; // index 0 = sesi 1
+
+// Hari kerja efektif per bulan (manual)
+const hariKerjaEfektif = {
+  '2025-05': 17,
+  '2025-06': 18,
+  // Tambah sesuai kebutuhan
+};
+
+// Fungsi load dan hitung capaian kinerja per bulan
+async function loadCapaianKinerja(bulanTahun) {
+  if (!bulanTahun) return;
+
+  // Ambil data laporan dari GAS
+  const res = await fetch(`${WEB_APP_URL}?action=getAllLaporan`);
+  const data = await res.json();
+
+  // Filter laporan user dan bulan
+  const laporanUserBulan = data.filter(item => {
+    if (item.nama !== userData.nama) return false;
+    if (!item.timestamp) return false;
+    const tgl = new Date(item.timestamp);
+    const y = tgl.getFullYear();
+    let m = tgl.getMonth() + 1;
+    m = m < 10 ? '0' + m : m;
+    return `${y}-${m}` === bulanTahun;
+  });
+
+  // Dapatkan tanggal unik hari laporan (jumlah laporan)
+  const tanggalUnikSet = new Set();
+  // Hitung total sesi terisi di bulan
+  let totalSesiTerisi = 0;
+  // Hitung total jam kerja
+  let totalJamKerja = 0;
+
+  laporanUserBulan.forEach(laporan => {
+    // Ambil tanggal laporan (YYYY-MM-DD)
+    const tgl = new Date(laporan.timestamp);
+    const y = tgl.getFullYear();
+    let m = tgl.getMonth() + 1;
+    m = m < 10 ? '0' + m : m;
+    let d = tgl.getDate();
+    d = d < 10 ? '0' + d : d;
+    const fullTanggal = `${y}-${m}-${d}`;
+    tanggalUnikSet.add(fullTanggal);
+
+    // Hitung sesi terisi untuk hari ini
+    let sesiTerisiHariIni = 0;
+    for (let i = 1; i <= 7; i++) {
+      const sesiKey = `Sesi ${i}`;
+      if (laporan[sesiKey] && laporan[sesiKey].trim() !== "") {
+        sesiTerisiHariIni++;
+        totalJamKerja += durasiSesi[i-1];
+      }
+    }
+    totalSesiTerisi += sesiTerisiHariIni;
+  });
+
+  // Target jam kerja = hari kerja efektif * 7.5 jam per hari
+  const targetJamKerja = (hariKerjaEfektif[bulanTahun] || 0) * 7.5;
+
+  // Kekurangan jam kerja = target - total jam kerja, minimal 0
+  const kekuranganJamKerja = Math.max(0, targetJamKerja - totalJamKerja);
+
+  // Update card statistik
+  document.getElementById('stat-laporan').textContent = tanggalUnikSet.size;
+  document.getElementById('stat-sesi-terisi').textContent = totalSesiTerisi;
+  document.getElementById('stat-jam-kerja').textContent = totalJamKerja.toFixed(2) + ' jam';
+  document.getElementById('stat-kekurangan-jam').textContent = kekuranganJamKerja.toFixed(2) + ' jam';
+
+  // Prepare data grafik (jumlah sesi per tanggal)
+  const sesiPerTanggal = {};
+  tanggalUnikSet.forEach(tgl => sesiPerTanggal[tgl] = 0);
+  laporanUserBulan.forEach(laporan => {
+    const tgl = new Date(laporan.timestamp);
+    const y = tgl.getFullYear();
+    let m = tgl.getMonth() + 1;
+    m = m < 10 ? '0' + m : m;
+    let d = tgl.getDate();
+    d = d < 10 ? '0' + d : d;
+    const fullTanggal = `${y}-${m}-${d}`;
+
+    let sesiTerisiHariIni = 0;
+    for (let i = 1; i <= 7; i++) {
+      const sesiKey = `Sesi ${i}`;
+      if (laporan[sesiKey] && laporan[sesiKey].trim() !== "") {
+        sesiTerisiHariIni++;
+      }
+    }
+    sesiPerTanggal[fullTanggal] = sesiTerisiHariIni;
+  });
+
+  // Siapkan data chart
+  const labels = Array.from(tanggalUnikSet).sort();
+  const dataChart = labels.map(tgl => sesiPerTanggal[tgl] || 0);
+
+  renderGrafikCapaian(labels, dataChart);
+}
+
+let chartCapaian = null;
+function renderGrafikCapaian(labels, data) {
+  const ctx = document.getElementById('grafik-capaian-kinerja').getContext('2d');
+  if (chartCapaian) chartCapaian.destroy();
+
+  chartCapaian = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: labels,
+      datasets: [{
+        label: 'Jumlah Sesi Terisi Per Hari',
+        data: data,
+        backgroundColor: 'rgba(54, 162, 235, 0.7)'
+      }]
+    },
+    options: {
+      scales: {
+        y: { beginAtZero: true, max: 7 }
+      },
+      plugins: {
+        legend: { display: true }
+      }
+    }
+  });
+}
+
+// Inisialisasi filter bulan di halaman Capaian Kinerja
+document.getElementById('filter-bulan-capaian').addEventListener('change', (e) => {
+  const bulan = e.target.value;
+  loadCapaianKinerja(bulan);
+});
+
+// Saat halaman Capaian Kinerja tampil, load data bulan default
+function initCapaianKinerjaPage() {
+  const now = new Date();
+  let month = now.getMonth() + 1;
+  month = month < 10 ? '0' + month : month;
+  const year = now.getFullYear();
+  const defaultMonthYear = `${year}-${month}`;
+
+  const filterBulanElem = document.getElementById('filter-bulan-capaian');
+  filterBulanElem.value = defaultMonthYear;
+
+  loadCapaianKinerja(defaultMonthYear);
+}
+
 // Data master pilihan kategori untuk Profil Saya
 const masterSubBidang = [
   "Sekretariat",
