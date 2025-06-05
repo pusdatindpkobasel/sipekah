@@ -3,6 +3,7 @@ const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbxS9glVdvcS0yfMOeEd
 let userData = {}, sesiStatus = {};
 const filterBulan = document.getElementById('filter-bulan');
 const filterTanggal = document.getElementById('filter-tanggal');
+const filterSubBidang = document.getElementById('filter-subbid');
 
 // Durasi tiap sesi dalam jam
 const durasiSesi = [1,1,1,1.5,1,1,1]; // index 0 = sesi 1
@@ -241,6 +242,7 @@ window.onload = () => {
   });
 };
 
+// ==================== Setup Navigation ====================
 function setupNavigation() {
   const menuLinks = document.querySelectorAll('#sidebar-menu a');
   const pages = document.querySelectorAll('.page-content');
@@ -299,6 +301,34 @@ function displayUserInfo() {
     <div class="row mb-1"><div class="col-4 fw-bold">Golongan:</div><div class="col-8">${userData.golongan}</div></div>
     <div class="row mb-0"><div class="col-4 fw-bold">Jabatan:</div><div class="col-8">${userData.jabatan}</div></div>
   `;
+}
+
+// ==================== Filter Laporan ====================
+function setupFilters() {
+  filterBulan.addEventListener('change', (e) => {
+    const bulan = e.target.value;
+    filterTanggal.value = "";
+    loadRiwayatLaporan(bulan, "");
+  });
+
+  filterTanggal.addEventListener('change', (e) => {
+    const tanggal = e.target.value;
+    const bulan = filterBulan.value;
+    loadRiwayatLaporan(bulan, tanggal);
+  });
+}
+
+// Filter Sub Bidang
+function filterBySubBidang(subbid) {
+  const rows = document.querySelectorAll("#tabel-monitor-laporan tbody tr");
+  rows.forEach(row => {
+    const subBidangCell = row.cells[0].textContent;
+    if (subbid && subBidangCell !== subbid) {
+      row.style.display = "none";
+    } else {
+      row.style.display = "";
+    }
+  });
 }
 
 function renderSimpleCalendar() {
@@ -609,8 +639,7 @@ function populateTanggalOptions(laporanUser, bulanTahun, selectedTanggal = "") {
     });
   }
 }
-// =========== Profil Saya ===========
-
+// ==================== User Profile ====================
 function loadUserProfile() {
   if (!userData || !userData.nama) return;
 
@@ -699,8 +728,7 @@ document.getElementById('profil-form').addEventListener('submit', async (e) => {
   }
 });
 
-// =========== Logout ===========
-
+// ==================== Logout ====================
 function logout() {
   Swal.fire({
     title: 'Apakah Anda yakin?',
@@ -722,7 +750,6 @@ function logout() {
   });
 }
 
-// Pasang logout button listener kalau tombol logout dinamis atau belum terpasang saat onload
 function setLogoutButton() {
   const btn1 = document.getElementById('logout-button');
   if(btn1) btn1.onclick = logout;
