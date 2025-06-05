@@ -211,7 +211,6 @@ window.onload = () => {
   setupFilters();
 
   // Load default riwayat laporan bulan ini tanpa filter tanggal
-
   let month = now.getMonth() + 1;
   month = month < 10 ? '0' + month : month;
   const year = now.getFullYear();
@@ -222,19 +221,22 @@ window.onload = () => {
 
   // Load data profil saat buka halaman profil
   // Kalau halaman profil aktif langsung load user profile
-  if(document.getElementById('page-profil').style.display !== 'none'){
+  if (document.getElementById('page-profil').style.display !== 'none') {
     loadUserProfile();
   }
+
+  // Pemanggilan fungsi untuk halaman Monitor Laporan
+  initMonitorLaporanPage();  // Pastikan fungsi ini dipanggil untuk inisialisasi filter dan laporan
 
   // Logout button event listeners
   document.getElementById('logout-button').addEventListener('click', logout);
   document.getElementById('logout-button-mobile').addEventListener('click', logout);
 
   // Event delegation untuk tombol kirim sesi
-  document.getElementById('sesi-form').addEventListener('click', function(event) {
+  document.getElementById('sesi-form').addEventListener('click', function (event) {
     const target = event.target;
     if (target && target.tagName === 'BUTTON' && target.id.startsWith('btn-kirim-sesi')) {
-      const sesiNum = parseInt(target.id.replace('btn-kirim-sesi',''));
+      const sesiNum = parseInt(target.id.replace('btn-kirim-sesi', ''));
       if (!isNaN(sesiNum)) {
         submitSesi(sesiNum);
       }
@@ -352,12 +354,12 @@ function initMonitorLaporanPage() {
   const filterBulanElem = document.getElementById('filter-bulan-monitor');
   filterBulanElem.value = defaultMonthYear;
 
+  // Pastikan fungsi ini dipanggil untuk memuat laporan
   loadMonitorLaporan(defaultMonthYear);
 
   // Memanggil populateSubBidangFilter untuk mengisi filter subbidang
-  populateSubBidangFilter();
+  populateSubBidangFilter();  // Pastikan filter subbidang diatur dengan benar
 }
-
 
 // Event listener untuk filter Sub Bidang
 document.getElementById('filter-subbid-monitor').addEventListener('change', (e) => {
