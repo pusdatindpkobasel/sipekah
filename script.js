@@ -154,6 +154,7 @@ function initCapaianKinerjaPage() {
 // Data master pilihan kategori untuk Profil Saya
 const masterSubBidang = [
   "Sekretariat",
+  "Bagian Umum & Kepegawaian",
   "Bidang Pemasaran Pariwisata & Ekraf",
   "Bidang Pengembangan Destinasi Pariwisata",
   "Bidang Pemuda & Olahraga",
@@ -172,7 +173,7 @@ const masterGolongan = [
 
 const masterJabatan = [
   "Staff",
-  "Kepala Sub Bagian",
+  "Kepala Subbagian",
   "Kepala Bidang",
   "Sekretaris",
   "Kepala Dinas",
