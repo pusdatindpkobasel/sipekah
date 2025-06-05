@@ -3,6 +3,7 @@ const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbxS9glVdvcS0yfMOeEd
 let userData = {}, sesiStatus = {};
 const filterBulan = document.getElementById('filter-bulan');
 const filterTanggal = document.getElementById('filter-tanggal');
+const filterSubBidang = document.getElementById('filter-subbid');
 
 // Durasi tiap sesi dalam jam
 const durasiSesi = [1,1,1,1.5,1,1,1]; // index 0 = sesi 1
@@ -16,6 +17,10 @@ const hariKerjaEfektif = {
 
 // Fungsi load dan hitung capaian kinerja per bulan
 async function loadCapaianKinerja(bulanTahun) {
+  if (!bulanTahun) return;
+
+  // Fungsi load dan hitung capaian kinerja per bulan
+async function loadMonitorLaporan(bulanTahun) {
   if (!bulanTahun) return;
 
   // Ambil data laporan dari GAS
@@ -32,6 +37,115 @@ async function loadCapaianKinerja(bulanTahun) {
     m = m < 10 ? '0' + m : m;
     return `${y}-${m}` === bulanTahun;
   });
+
+  // Filter berdasarkan Jabatan dan Sub Bidang
+  const filteredLaporan = laporanUserBulan.filter(laporan => {
+    if (userData.jabatan === 'Admin' || userData.jabatan === 'Kepala Dinas' || userData.jabatan === 'Sekretaris') {
+      return true;  // Admin, Kepala Dinas, dan Sekretaris dapat melihat semua
+    }
+
+    if (userData.jabatan === 'Kepala Bidang' || userData.jabatan === 'Kepala Sub Bagian') {
+      if (laporan.subbid === userData.subbid) {
+        return true;  // Kepala Bidang atau Kepala Sub Bagian hanya bisa melihat laporan dari sub bidang mereka
+      }
+    }
+    return false;
+  });
+
+  // Menampilkan data pegawai yang sudah dan belum mengisi laporan
+  const pegawaiLaporan = filteredLaporan.map(laporan => {
+    const sesiTerisi = Object.keys(laporan).filter(key => key.includes("Sesi") && laporan[key].trim() !== "").length;
+    const status = sesiTerisi === 7 ? 'Laporan Lengkap' : 'Belum Lengkap';
+
+    return {
+      nama: laporan.nama,
+      tanggal: new Date(laporan.timestamp).toLocaleDateString(),
+      sesiTerisi: sesiTerisi,
+      status: status
+    };
+  });
+
+  // Menampilkan data laporan di tabel
+  const tbody = document.querySelector("#tabel-monitor-laporan tbody");
+  tbody.innerHTML = "";  // Clear existing rows
+
+  if (pegawaiLaporan.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="4" class="text-center">Belum ada laporan di periode ini.</td></tr>`;
+    return;
+  }
+
+  pegawaiLaporan.forEach(item => {
+    const row = document.createElement("tr");
+    row.innerHTML = `
+      <td>${item.nama}</td>
+      <td>${item.tanggal}</td>
+      <td>${item.sesiTerisi} / 7</td>
+      <td>${item.status}</td>
+    `;
+    tbody.appendChild(row);
+  });
+}
+
+// Filter berdasarkan Sub Bidang
+function filterBySubBidang(subbid) {
+  const rows = document.querySelectorAll("#tabel-monitor-laporan tbody tr");
+  rows.forEach(row => {
+    const subBidangCell = row.cells[0].textContent;
+    if (subbid && subBidangCell !== subbid) {
+      row.style.display = "none";
+    } else {
+      row.style.display = "";
+    }
+  });
+}
+
+// Fungsi untuk menampilkan filter bulan
+document.getElementById('filter-bulan-monitor').addEventListener('change', (e) => {
+  const bulan = e.target.value;
+  loadMonitorLaporan(bulan);
+});
+
+// Filter Sub Bidang
+document.getElementById('filter-subbid').addEventListener('change', (e) => {
+  const subbid = e.target.value;
+  filterBySubBidang(subbid);
+});
+
+// Saat halaman Monitor Laporan tampil, load data bulan default
+function initMonitorLaporanPage() {
+  const now = new Date();
+  let month = now.getMonth() + 1;
+  month = month < 10 ? '0' + month : month;
+  const year = now.getFullYear();
+  const defaultMonthYear = `${year}-${month}`;
+
+  const filterBulanElem = document.getElementById('filter-bulan-monitor');
+  filterBulanElem.value = defaultMonthYear;
+
+  loadMonitorLaporan(defaultMonthYear);
+
+  // Jika admin, bisa memilih semua subbidang
+  if (userData.jabatan === 'Admin' || userData.jabatan === 'Kepala Dinas' || userData.jabatan === 'Sekretaris') {
+    populateSubBidangSelect(masterSubBidang);
+  } else {
+    // Untuk Kepala Bidang dan Kepala Subbagian, hanya bisa melihat subbidang mereka
+    filterSubBidang.value = userData.subbid;
+    filterSubBidang.disabled = true;
+  }
+}
+
+// Menampilkan sub bidang filter
+function populateSubBidangSelect(subBidangList) {
+  const select = document.getElementById('filter-subbid');
+  select.innerHTML = "";
+
+  subBidangList.forEach(subbid => {
+    const optionEl = document.createElement('option');
+    optionEl.value = subbid;
+    optionEl.textContent = subbid;
+    select.appendChild(optionEl);
+  });
+}
 
   // Dapatkan tanggal unik hari laporan (jumlah laporan)
   const tanggalUnikSet = new Set();
@@ -241,6 +355,7 @@ window.onload = () => {
   });
 };
 
+// ==================== Setup Navigation ====================
 function setupNavigation() {
   const menuLinks = document.querySelectorAll('#sidebar-menu a');
   const pages = document.querySelectorAll('.page-content');
@@ -609,8 +724,7 @@ function populateTanggalOptions(laporanUser, bulanTahun, selectedTanggal = "") {
     });
   }
 }
-// =========== Profil Saya ===========
-
+// ==================== User Profile ====================
 function loadUserProfile() {
   if (!userData || !userData.nama) return;
 
@@ -699,8 +813,7 @@ document.getElementById('profil-form').addEventListener('submit', async (e) => {
   }
 });
 
-// =========== Logout ===========
-
+// ==================== Logout ====================
 function logout() {
   Swal.fire({
     title: 'Apakah Anda yakin?',
@@ -722,7 +835,7 @@ function logout() {
   });
 }
 
-// Pasang logout button listener kalau tombol logout dinamis atau belum terpasang saat onload
+// ==================== Set Logout Button ====================
 function setLogoutButton() {
   const btn1 = document.getElementById('logout-button');
   if(btn1) btn1.onclick = logout;
