@@ -318,6 +318,53 @@ function setupFilters() {
   });
 }
 
+// Mengisi dropdown Sub Bidang berdasarkan jabatan pengguna
+function populateSubBidangFilter() {
+  const filterSubBidangElem = document.getElementById('filter-subbid-monitor');
+  filterSubBidangElem.innerHTML = "<option value=''>-- Pilih Sub Bidang --</option>"; // Reset pilihan
+
+  if (userData.jabatan === 'Admin' || userData.jabatan === 'Kepala Dinas' || userData.jabatan === 'Sekretaris') {
+    // Admin, Kepala Dinas, Sekretaris dapat memilih semua Sub Bidang
+    masterSubBidang.forEach(subbid => {
+      const option = document.createElement('option');
+      option.value = subbid;
+      option.textContent = subbid;
+      filterSubBidangElem.appendChild(option);
+    });
+  } else {
+    // Kepala Bidang dan Kepala Sub Bagian hanya bisa melihat subbidang mereka
+    const option = document.createElement('option');
+    option.value = userData.subbid;
+    option.textContent = userData.subbid;
+    filterSubBidangElem.appendChild(option);
+    filterSubBidangElem.disabled = true; // Disable untuk subbidang selain milik user
+  }
+}
+
+// Saat halaman Monitor Laporan tampil, load data bulan default dan subbidang
+function initMonitorLaporanPage() {
+  const now = new Date();
+  let month = now.getMonth() + 1;
+  month = month < 10 ? '0' + month : month;
+  const year = now.getFullYear();
+  const defaultMonthYear = `${year}-${month}`;
+
+  const filterBulanElem = document.getElementById('filter-bulan-monitor');
+  filterBulanElem.value = defaultMonthYear;
+
+  loadMonitorLaporan(defaultMonthYear);
+
+  // Memanggil populateSubBidangFilter untuk mengisi filter subbidang
+  populateSubBidangFilter();
+}
+
+
+// Event listener untuk filter Sub Bidang
+document.getElementById('filter-subbid-monitor').addEventListener('change', (e) => {
+  const subbid = e.target.value;
+  loadMonitorLaporan(filterBulan.value, subbid);  // Memuat laporan dengan subbid yang dipilih
+});
+
 // Filter Sub Bidang
 function filterBySubBidang(subbid) {
   const rows = document.querySelectorAll("#tabel-monitor-laporan tbody tr");
@@ -639,6 +686,79 @@ function populateTanggalOptions(laporanUser, bulanTahun, selectedTanggal = "") {
     });
   }
 }
+// ==================== Monitor Laporan ====================
+async function loadMonitorLaporan(bulanTahun, subbidFilter = "") {
+  if (!bulanTahun) return;
+
+  // Ambil data laporan dari GAS
+  const res = await fetch(`${WEB_APP_URL}?action=getAllLaporan`);
+  const data = await res.json();
+
+  // Filter laporan user dan bulan
+  const laporanUserBulan = data.filter(item => {
+    if (item.nama !== userData.nama) return false;
+    if (!item.timestamp) return false;
+    const tgl = new Date(item.timestamp);
+    const y = tgl.getFullYear();
+    let m = tgl.getMonth() + 1;
+    m = m < 10 ? '0' + m : m;
+    return `${y}-${m}` === bulanTahun;
+  });
+
+  // Filter berdasarkan Jabatan, Sub Bidang, dan Sub Bidang yang dipilih
+  const filteredLaporan = laporanUserBulan.filter(laporan => {
+    if (userData.jabatan === 'Admin' || userData.jabatan === 'Kepala Dinas' || userData.jabatan === 'Sekretaris') {
+      return true;  // Admin, Kepala Dinas, dan Sekretaris dapat melihat semua
+    }
+
+    if (userData.jabatan === 'Kepala Bidang' || userData.jabatan === 'Kepala Sub Bagian') {
+      // Kepala Bidang atau Kepala Sub Bagian hanya bisa melihat laporan dari sub bidang mereka
+      if (laporan.subbid === userData.subbid) {
+        return true;  // Laporan yang sesuai dengan sub bidang
+      }
+    }
+
+    // Menambahkan filter berdasarkan subbid yang dipilih
+    if (subbidFilter && laporan.subbid !== subbidFilter) {
+      return false; // Mengabaikan laporan yang subbidnya tidak sesuai dengan filter
+    }
+    return false;
+  });
+
+  // Menampilkan data pegawai yang sudah dan belum mengisi laporan
+  const pegawaiLaporan = filteredLaporan.map(laporan => {
+    const sesiTerisi = Object.keys(laporan).filter(key => key.includes("Sesi") && laporan[key].trim() !== "").length;
+    const status = sesiTerisi === 7 ? 'Laporan Lengkap' : 'Belum Lengkap';
+
+    return {
+      nama: laporan.nama,
+      tanggal: new Date(laporan.timestamp).toLocaleDateString(),
+      sesiTerisi: sesiTerisi,
+      status: status
+    };
+  });
+
+  // Menampilkan data laporan di tabel
+  const tbody = document.querySelector("#tabel-monitor-laporan tbody");
+  tbody.innerHTML = "";  // Clear existing rows
+
+  if (pegawaiLaporan.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="4" class="text-center">Belum ada laporan di periode ini.</td></tr>`;
+    return;
+  }
+
+  pegawaiLaporan.forEach(item => {
+    const row = document.createElement("tr");
+    row.innerHTML = `
+      <td>${item.nama}</td>
+      <td>${item.tanggal}</td>
+      <td>${item.sesiTerisi} / 7</td>
+      <td>${item.status}</td>
+    `;
+    tbody.appendChild(row);
+  });
+}
+
 // ==================== User Profile ====================
 function loadUserProfile() {
   if (!userData || !userData.nama) return;
