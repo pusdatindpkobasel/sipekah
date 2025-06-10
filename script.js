@@ -405,7 +405,7 @@ function renderSimpleCalendar() {
         laporanUser.map(item => {
           const d = new Date(item.timestamp);
 
-          // Menggunakan getUTCFullYear, getUTCMonth, dan getUTCDate agar selalu konsisten dengan UTC
+          // Membuat objek Date dengan UTC dan menghindari pergeseran
           const year = d.getUTCFullYear();
           const month = d.getUTCMonth();  // Bulan UTC dimulai dari 0 (Januari = 0)
           const date = d.getUTCDate();  // Mengambil tanggal UTC yang sebenarnya
