@@ -381,6 +381,7 @@ function filterBySubBidang(subbid) {
   });
 }
 
+// ==================== Simple Calendar ====================
 function renderSimpleCalendar() {
   const calendarEl = document.getElementById("simple-calendar");
   const calendarTitle = document.getElementById("calendar-title");
