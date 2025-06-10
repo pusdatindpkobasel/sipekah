@@ -401,12 +401,14 @@ function renderSimpleCalendar() {
     .then(data => {
       const laporanUser = data.filter(item => item.nama === userData.nama);
 
+      // Membuat set laporanDates dengan tanggal dalam format YYYY-MM-DD
       const laporanDates = new Set(
         laporanUser.map(item => {
           const d = new Date(item.timestamp);
-          // Konversi ke waktu lokal untuk menghindari pergeseran zona waktu
+          // Mengonversi waktu UTC ke waktu lokal dan mengubahnya menjadi format YYYY-MM-DD
           const localDate = new Date(d.getTime() - (d.getTimezoneOffset() * 60000));
-          return localDate.toISOString().split('T')[0]; // Gunakan waktu lokal
+          const formattedDate = localDate.toISOString().split('T')[0]; // Format tanggal menjadi YYYY-MM-DD
+          return formattedDate;
         })
       );
 
@@ -430,12 +432,13 @@ function renderSimpleCalendar() {
         calendarEl.appendChild(emptyCell);
       }
 
+      // Mengulangi untuk setiap hari dalam bulan
       for (let day = 1; day <= daysInMonth; day++) {
         const cell = document.createElement("div");
         cell.className = "day-cell";
 
-        // Gunakan metode toLocaleDateString() untuk memastikan tanggal diambil dengan zona waktu lokal
-        const dateStr = new Date(year, month, day).toLocaleDateString(); // Menggunakan waktu lokal
+        // Mendapatkan tanggal dalam format YYYY-MM-DD untuk perbandingan
+        const dateStr = new Date(year, month, day).toISOString().split('T')[0]; // Format: YYYY-MM-DD
 
         cell.textContent = day;
 
@@ -448,6 +451,7 @@ function renderSimpleCalendar() {
           cell.classList.add("day-today");
         }
 
+        // Menandai tanggal yang sudah dilaporkan
         if (laporanDates.has(dateStr)) {
           cell.classList.add("day-reported");
           cell.title = "Sudah melapor pada tanggal ini";
