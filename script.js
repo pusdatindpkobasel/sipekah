@@ -403,7 +403,9 @@ function renderSimpleCalendar() {
       const laporanDates = new Set(
         laporanUser.map(item => {
           const d = new Date(item.timestamp);
-          return d.toISOString().split('T')[0];
+          // Konversi ke waktu lokal untuk menghindari pergeseran zona waktu
+          const localDate = new Date(d.getTime() - (d.getTimezoneOffset() * 60000));
+          return localDate.toISOString().split('T')[0]; // Gunakan waktu lokal
         })
       );
 
@@ -431,7 +433,9 @@ function renderSimpleCalendar() {
         const cell = document.createElement("div");
         cell.className = "day-cell";
 
-        const dateStr = new Date(year, month, day).toISOString().split('T')[0];
+        // Gunakan metode toLocaleDateString() untuk memastikan tanggal diambil dengan zona waktu lokal
+        const dateStr = new Date(year, month, day).toLocaleDateString(); // Menggunakan waktu lokal
+
         cell.textContent = day;
 
         const today = new Date();
