@@ -381,7 +381,6 @@ function filterBySubBidang(subbid) {
   });
 }
 
-// ==================== Simple Calendar ====================
 function renderSimpleCalendar() {
   const calendarEl = document.getElementById("simple-calendar");
   const calendarTitle = document.getElementById("calendar-title");
@@ -394,17 +393,22 @@ function renderSimpleCalendar() {
   const year = now.getFullYear();
   const month = now.getMonth();
 
-  calendarTitle.textContent = Kalender Laporan ${bulanNames[month]} ${year};
+  calendarTitle.textContent = `Kalender Laporan ${bulanNames[month]} ${year}`;
 
-  fetch(${WEB_APP_URL}?action=getAllLaporan)
+  fetch(`${WEB_APP_URL}?action=getAllLaporan`)
     .then(res => res.json())
     .then(data => {
       const laporanUser = data.filter(item => item.nama === userData.nama);
 
+      // Mengubah timestamp ke waktu lokal dan menyimpan dalam Set untuk laporan tanggal
       const laporanDates = new Set(
         laporanUser.map(item => {
           const d = new Date(item.timestamp);
-          return d.toISOString().split('T')[0];
+          
+          // Menyesuaikan waktu UTC ke waktu lokal
+          const localDate = new Date(d.getTime() - (d.getTimezoneOffset() * 60000)); // Adjust UTC to local
+          const formattedDate = localDate.toISOString().split('T')[0]; // Format tanggal menjadi YYYY-MM-DD
+          return formattedDate;
         })
       );
 
@@ -428,13 +432,17 @@ function renderSimpleCalendar() {
         calendarEl.appendChild(emptyCell);
       }
 
+      // Loop untuk menampilkan setiap hari dalam bulan
       for (let day = 1; day <= daysInMonth; day++) {
         const cell = document.createElement("div");
         cell.className = "day-cell";
 
+        // Mengonversi tanggal hari ke format YYYY-MM-DD
         const dateStr = new Date(year, month, day).toISOString().split('T')[0];
+
         cell.textContent = day;
 
+        // Menandai hari yang sama dengan hari ini
         const today = new Date();
         if (
           day === today.getDate() &&
@@ -444,6 +452,7 @@ function renderSimpleCalendar() {
           cell.classList.add("day-today");
         }
 
+        // Memeriksa apakah tanggal hari tersebut sudah ada laporan
         if (laporanDates.has(dateStr)) {
           cell.classList.add("day-reported");
           cell.title = "Sudah melapor pada tanggal ini";
