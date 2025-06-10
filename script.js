@@ -400,14 +400,14 @@ function renderSimpleCalendar() {
     .then(data => {
       const laporanUser = data.filter(item => item.nama === userData.nama);
 
-      // Mengonversi tanggal laporan ke format YYYY-MM-DD tanpa pergeseran zona waktu
+      // Mengonversi timestamp menjadi tanggal tanpa zona waktu yang salah
       const laporanDates = new Set(
         laporanUser.map(item => {
           const d = new Date(item.timestamp);
 
-          // Membuat objek Date dengan UTC dan menghindari pergeseran
+          // Mendapatkan tahun, bulan, dan tanggal dalam UTC untuk menghindari pergeseran zona waktu
           const year = d.getUTCFullYear();
-          const month = d.getUTCMonth();  // Bulan UTC dimulai dari 0 (Januari = 0)
+          const month = d.getUTCMonth(); // Bulan UTC dimulai dari 0 (Januari = 0)
           const date = d.getUTCDate();  // Mengambil tanggal UTC yang sebenarnya
 
           // Mengonversi ke format YYYY-MM-DD
@@ -443,7 +443,7 @@ function renderSimpleCalendar() {
         cell.className = "day-cell";
 
         // Membuat objek Date untuk setiap hari dan mengonversinya ke string format YYYY-MM-DD
-        const dateStr = new Date(year, month, day).toISOString().split('T')[0];
+        const dateStr = new Date(Date.UTC(year, month, day)).toISOString().split('T')[0];  // UTC untuk mencegah pergeseran
 
         cell.textContent = day;
 
