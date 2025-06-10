@@ -405,12 +405,19 @@ function renderSimpleCalendar() {
       const laporanDates = new Set(
         laporanUser.map(item => {
           const d = new Date(item.timestamp);
+
           // Mengonversi waktu UTC ke waktu lokal dan mengubahnya menjadi format YYYY-MM-DD
-          const localDate = new Date(d.getTime() - (d.getTimezoneOffset() * 60000));
+          const localDate = new Date(d.getTime() - (d.getTimezoneOffset() * 60000)); // Adjust to local time
           const formattedDate = localDate.toISOString().split('T')[0]; // Format tanggal menjadi YYYY-MM-DD
+
+          // Debug: log tanggal yang diproses untuk laporan
+          console.log("Laporan Tanggal:", formattedDate);
+
           return formattedDate;
         })
       );
+
+      console.log("Laporan Dates:", Array.from(laporanDates));  // Debug untuk melihat semua tanggal laporan
 
       const firstDay = new Date(year, month, 1);
       const firstWeekday = firstDay.getDay();
