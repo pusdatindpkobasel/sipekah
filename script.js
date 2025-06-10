@@ -394,30 +394,19 @@ function renderSimpleCalendar() {
   const year = now.getFullYear();
   const month = now.getMonth();
 
-  calendarTitle.textContent = `Kalender Laporan ${bulanNames[month]} ${year}`;
+  calendarTitle.textContent = Kalender Laporan ${bulanNames[month]} ${year};
 
-  fetch(`${WEB_APP_URL}?action=getAllLaporan`)
+  fetch(${WEB_APP_URL}?action=getAllLaporan)
     .then(res => res.json())
     .then(data => {
       const laporanUser = data.filter(item => item.nama === userData.nama);
 
-      // Membuat set laporanDates dengan tanggal dalam format YYYY-MM-DD
       const laporanDates = new Set(
         laporanUser.map(item => {
           const d = new Date(item.timestamp);
-
-          // Mengonversi waktu UTC ke waktu lokal dan mengubahnya menjadi format YYYY-MM-DD
-          const localDate = new Date(d.getTime() - (d.getTimezoneOffset() * 60000)); // Adjust to local time
-          const formattedDate = localDate.toISOString().split('T')[0]; // Format tanggal menjadi YYYY-MM-DD
-
-          // Debug: log tanggal yang diproses untuk laporan
-          console.log("Laporan Tanggal:", formattedDate);
-
-          return formattedDate;
+          return d.toISOString().split('T')[0];
         })
       );
-
-      console.log("Laporan Dates:", Array.from(laporanDates));  // Debug untuk melihat semua tanggal laporan
 
       const firstDay = new Date(year, month, 1);
       const firstWeekday = firstDay.getDay();
@@ -439,14 +428,11 @@ function renderSimpleCalendar() {
         calendarEl.appendChild(emptyCell);
       }
 
-      // Mengulangi untuk setiap hari dalam bulan
       for (let day = 1; day <= daysInMonth; day++) {
         const cell = document.createElement("div");
         cell.className = "day-cell";
 
-        // Mendapatkan tanggal dalam format YYYY-MM-DD untuk perbandingan
-        const dateStr = new Date(year, month, day).toISOString().split('T')[0]; // Format: YYYY-MM-DD
-
+        const dateStr = new Date(year, month, day).toISOString().split('T')[0];
         cell.textContent = day;
 
         const today = new Date();
@@ -458,7 +444,6 @@ function renderSimpleCalendar() {
           cell.classList.add("day-today");
         }
 
-        // Menandai tanggal yang sudah dilaporkan
         if (laporanDates.has(dateStr)) {
           cell.classList.add("day-reported");
           cell.title = "Sudah melapor pada tanggal ini";
