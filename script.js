@@ -400,17 +400,19 @@ function renderSimpleCalendar() {
     .then(data => {
       const laporanUser = data.filter(item => item.nama === userData.nama);
 
-      // Mengubah timestamp ke waktu lokal dan menyimpan dalam Set untuk laporan tanggal
+      // Mengubah timestamp dari GAS ke waktu lokal yang sesuai
       const laporanDates = new Set(
         laporanUser.map(item => {
-          // Menyesuaikan dengan GMT+7, waktu yang diterima dari GAS
-          const d = new Date(item.timestamp); // timestamp dari GAS
+          // Timestamp yang diterima mungkin sudah dalam format yang sesuai dengan GMT+7
+          const d = new Date(item.timestamp); // Timestamp dari GAS (misalnya "2025-06-02T08:23:24+07:00")
           
-          // Pastikan kita menggunakan waktu lokal berdasarkan zona waktu Indonesia (GMT+7)
-          const localDate = new Date(d.getTime() + (d.getTimezoneOffset() * 60000)); // Adjust UTC to local
+          // Menggunakan getUTCFullYear, getUTCMonth, dan getUTCDate untuk mendapatkan tanggal dalam UTC yang tepat
+          const year = d.getUTCFullYear();
+          const month = d.getUTCMonth();
+          const date = d.getUTCDate();
 
-          // Konversi tanggal menjadi format YYYY-MM-DD
-          const formattedDate = localDate.toISOString().split('T')[0]; 
+          // Mengonversi tanggal ke format YYYY-MM-DD
+          const formattedDate = `${year}-${month + 1 < 10 ? '0' + (month + 1) : month + 1}-${date < 10 ? '0' + date : date}`;
           return formattedDate;
         })
       );
@@ -441,7 +443,7 @@ function renderSimpleCalendar() {
         const cell = document.createElement("div");
         cell.className = "day-cell";
 
-        // Mengonversi tanggal hari ke format YYYY-MM-DD
+        // Membuat objek Date untuk setiap hari dan mengonversinya ke string format YYYY-MM-DD
         const dateStr = new Date(year, month, day).toISOString().split('T')[0];
 
         cell.textContent = day;
@@ -469,6 +471,7 @@ function renderSimpleCalendar() {
       console.error("Gagal load data laporan untuk kalender:", err);
     });
 }
+
 
 function loadSesiStatus() {
   fetch(`${WEB_APP_URL}?action=getLaporan&nama=${userData.nama}`)
