@@ -403,11 +403,14 @@ function renderSimpleCalendar() {
       // Mengubah timestamp ke waktu lokal dan menyimpan dalam Set untuk laporan tanggal
       const laporanDates = new Set(
         laporanUser.map(item => {
-          const d = new Date(item.timestamp);
+          // Menyesuaikan dengan GMT+7, waktu yang diterima dari GAS
+          const d = new Date(item.timestamp); // timestamp dari GAS
           
-          // Menyesuaikan waktu UTC ke waktu lokal
-          const localDate = new Date(d.getTime() - (d.getTimezoneOffset() * 60000)); // Adjust UTC to local
-          const formattedDate = localDate.toISOString().split('T')[0]; // Format tanggal menjadi YYYY-MM-DD
+          // Pastikan kita menggunakan waktu lokal berdasarkan zona waktu Indonesia (GMT+7)
+          const localDate = new Date(d.getTime() + (d.getTimezoneOffset() * 60000)); // Adjust UTC to local
+
+          // Konversi tanggal menjadi format YYYY-MM-DD
+          const formattedDate = localDate.toISOString().split('T')[0]; 
           return formattedDate;
         })
       );
@@ -426,6 +429,7 @@ function renderSimpleCalendar() {
         calendarEl.appendChild(headerCell);
       });
 
+      // Menambahkan sel kosong sebelum tanggal pertama bulan ini
       for (let i = 0; i < firstWeekday; i++) {
         const emptyCell = document.createElement("div");
         emptyCell.className = "day-cell";
