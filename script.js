@@ -400,18 +400,17 @@ function renderSimpleCalendar() {
     .then(data => {
       const laporanUser = data.filter(item => item.nama === userData.nama);
 
-      // Mengubah timestamp dari GAS ke waktu lokal yang sesuai
+      // Mengonversi tanggal laporan ke format YYYY-MM-DD tanpa pergeseran zona waktu
       const laporanDates = new Set(
         laporanUser.map(item => {
-          // Timestamp yang diterima mungkin sudah dalam format yang sesuai dengan GMT+7
-          const d = new Date(item.timestamp); // Timestamp dari GAS (misalnya "2025-06-02T08:23:24+07:00")
-          
-          // Menggunakan getUTCFullYear, getUTCMonth, dan getUTCDate untuk mendapatkan tanggal dalam UTC yang tepat
-          const year = d.getUTCFullYear();
-          const month = d.getUTCMonth();
-          const date = d.getUTCDate();
+          const d = new Date(item.timestamp);
 
-          // Mengonversi tanggal ke format YYYY-MM-DD
+          // Menggunakan getUTCFullYear, getUTCMonth, dan getUTCDate agar selalu konsisten dengan UTC
+          const year = d.getUTCFullYear();
+          const month = d.getUTCMonth();  // Bulan UTC dimulai dari 0 (Januari = 0)
+          const date = d.getUTCDate();  // Mengambil tanggal UTC yang sebenarnya
+
+          // Mengonversi ke format YYYY-MM-DD
           const formattedDate = `${year}-${month + 1 < 10 ? '0' + (month + 1) : month + 1}-${date < 10 ? '0' + date : date}`;
           return formattedDate;
         })
@@ -471,7 +470,6 @@ function renderSimpleCalendar() {
       console.error("Gagal load data laporan untuk kalender:", err);
     });
 }
-
 
 function loadSesiStatus() {
   fetch(`${WEB_APP_URL}?action=getLaporan&nama=${userData.nama}`)
