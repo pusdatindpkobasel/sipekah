@@ -238,35 +238,28 @@
 <!-- Konten utama -->
 <main id="content" tabindex="-1">
   <!-- Halaman Beranda -->
-<section id="page-beranda" class="page-content">
-  <div class="row">
-    <div class="col-lg-6 mb-4">
-      <div class="card mb-3">
-        <div class="card-body">
-          <h5 class="card-title">Informasi Pegawai</h5>
-          <div id="info-pegawai"></div>
+  <section id="page-beranda" class="page-content">
+    <div class="row">
+      <div class="col-lg-6 mb-4">
+        <div class="card mb-3">
+          <div class="card-body">
+            <h5 class="card-title">Informasi Pegawai</h5>
+            <div id="info-pegawai"></div>
+          </div>
         </div>
-      </div>
-      <div class="card">
-        <div class="card-body">
-          <h5 class="card-title" id="calendar-title">Kalender Laporan</h5>
-          <div id="simple-calendar"></div>
-
-          <!-- Form Pilih Tanggal Laporan (Pindahkan ke atas sesi form) -->
-          <div class="mb-3">
-            <label for="tanggal-laporan" class="form-label">Tanggal Laporan:</label>
-            <input type="date" id="tanggal-laporan" class="form-control" value="" />
+        <div class="card">
+          <div class="card-body">
+            <h5 class="card-title" id="calendar-title">Kalender Laporan</h5>
+            <div id="simple-calendar"></div>
           </div>
         </div>
       </div>
+      <div class="col-lg-6">
+        <div id="sesi-status"></div>
+        <div id="sesi-form"></div>
+      </div>
     </div>
-    <div class="col-lg-6">
-      <div id="sesi-status"></div>
-      <div id="sesi-form"></div>
-    </div>
-  </div>
-</section>
-
+  </section>
 
   <!-- Halaman Laporan Saya -->
   <section id="page-laporan" class="page-content" style="display:none;">
