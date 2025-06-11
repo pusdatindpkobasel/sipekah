@@ -594,48 +594,8 @@ function renderSesiForm() {
   const wrapper = document.getElementById("sesi-form");
   wrapper.innerHTML = "";
 
-  const tanggalLaporan = document.getElementById("tanggal-laporan").value; // Ambil tanggal yang dipilih
-  
-  // Membuat form input untuk tanggal laporan
-  const pilihTanggalDiv = document.createElement("div");
-  pilihTanggalDiv.className = "mb-3";
-  pilihTanggalDiv.innerHTML = `
-    <label for="tanggal-laporan" class="form-label">Pilih Tanggal Laporan:</label>
-    <input type="date" id="tanggal-laporan" class="form-control" min="2022-01-01" />
-  `;
-  wrapper.appendChild(pilihTanggalDiv);
-
-  // Ambil tanggal hari ini dan tanggal laporan yang sudah ada
-  const today = new Date().toISOString().split('T')[0];  // Format YYYY-MM-DD
-  const laporanDates = new Set();  // Set yang berisi tanggal laporan yang sudah diisi
-  
-  // Mengisi tanggal yang sudah terisi laporannya
-  // Ambil laporan yang sudah ada untuk tanggal yang sudah diisi
-  fetch(`${WEB_APP_URL}?action=getLaporan`)
-    .then(res => res.json())
-    .then(data => {
-      data.forEach(item => {
-        const laporanDate = new Date(item.timestamp).toISOString().split('T')[0];
-        laporanDates.add(laporanDate);
-      });
-
-      // Menyembunyikan tanggal yang sudah terisi
-      document.getElementById("tanggal-laporan").setAttribute("max", today); // Tidak bisa memilih tanggal setelah hari ini
-      const inputTanggal = document.getElementById("tanggal-laporan");
-
-      // Cek apakah tanggal yang dipilih sudah terisi laporan
-      if (laporanDates.has(tanggalLaporan)) {
-        inputTanggal.value = ""; // Kosongkan jika sudah ada laporan
-        inputTanggal.disabled = true; // Nonaktifkan tanggal yang sudah diisi
-        Swal.fire('Tanggal ini sudah diisi laporan!', '', 'info');
-      } else {
-        inputTanggal.disabled = false; // Biarkan tanggal yang belum diisi tetap aktif
-      }
-    })
-    .catch(err => console.error('Error fetching laporan:', err));
-
-  // Rendering form sesi untuk tanggal yang dipilih
   let totalIsi = 0;
+
   for (let i = 1; i <= 7; i++) {
     const sudah = sesiStatus[`sesi${i}`];
     const bukti = sesiStatus[`bukti${i}`];
@@ -661,7 +621,6 @@ function renderSesiForm() {
     wrapper.appendChild(div);
   }
 
-  // Menampilkan status jumlah sesi yang sudah diisi
   const statusEl = document.getElementById("sesi-status");
   if (statusEl) {
     statusEl.innerHTML = `
@@ -670,29 +629,17 @@ function renderSesiForm() {
       </div>
     `;
   }
-}
 
   console.log('renderSesiForm called, totalIsi:', totalIsi);
 }
-
-document.getElementById('tanggal-laporan').addEventListener('change', function() {
-  const tanggalDipilih = this.value;
-
-  // Cek apakah tanggal dipilih sudah terisi
-  if (laporanDates.has(tanggalDipilih)) {
-    Swal.fire('Tanggal ini sudah ada laporannya!', '', 'info');
-    document.getElementById('tanggal-laporan').value = ''; // Reset tanggal
-  }
-});
 
 // Fungsi submit sesi dengan upload file dan data form
 async function submitSesi(i) {
   const pekerjaan = document.getElementById(`sesi${i}`).value.trim();
   const file = document.getElementById(`file${i}`).files[0];
-  const tanggalLaporan = document.getElementById("tanggal-laporan").value;  // Tanggal yang dipilih
 
-  if (!pekerjaan || !file || !tanggalLaporan) {
-    Swal.fire("Isi uraian, pilih file, dan pilih tanggal", "", "warning");
+  if (!pekerjaan || !file) {
+    Swal.fire("Isi uraian & pilih file", "", "warning");
     return;
   }
 
@@ -737,7 +684,6 @@ async function submitSesi(i) {
       formDataSubmit.append('status', userData.status);
       formDataSubmit.append('golongan', userData.golongan);
       formDataSubmit.append('jabatan', userData.jabatan);
-      formDataSubmit.append('tanggalLaporan', tanggalLaporan); // Menambahkan tanggal laporan
       formDataSubmit.append('sesiKey', `sesi${i}`);
       formDataSubmit.append('buktiKey', `bukti${i}`);
       formDataSubmit.append('sesiVal', pekerjaan);
@@ -758,7 +704,6 @@ async function submitSesi(i) {
   };
   reader.readAsDataURL(file);
 }
-
 
 // =========== Filter Laporan Saya ==========
 function setupFilters() {
