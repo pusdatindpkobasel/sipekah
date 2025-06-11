@@ -338,7 +338,7 @@ function initMonitorLaporanPage() {
   populateSubBidangFilter();
 }
 
-// Mengisi dropdown Sub Bidang berdasarkan jabatan pengguna
+// Fungsi untuk mengisi dropdown Sub Bidang berdasarkan jabatan pengguna
 function populateSubBidangFilter() {
   const filterSubBidangElem = document.getElementById('filter-subbid-monitor');
   filterSubBidangElem.innerHTML = "<option value=''>-- Pilih Sub Bidang --</option>"; // Reset pilihan
@@ -361,6 +361,126 @@ function populateSubBidangFilter() {
   }
 }
 
+// Fungsi untuk mengisi dropdown Tanggal berdasarkan laporan yang tersedia
+function populateTanggalOptions(laporanUser, bulanTahun, selectedTanggal = "") {
+  const tanggalSet = new Set();
+
+  laporanUser.forEach(item => {
+    const tanggal = new Date(item.timestamp);
+    const y = tanggal.getFullYear();
+    let m = tanggal.getMonth() + 1;
+    let d = tanggal.getDate();
+    m = m < 10 ? '0' + m : m;
+    d = d < 10 ? '0' + d : d;
+    const itemBulanTahun = `${y}-${m}`;
+    if(itemBulanTahun === bulanTahun){
+      tanggalSet.add(`${y}-${m}-${d}`);
+    }
+  });
+
+  filterTanggal.innerHTML = "<option value=''>-- Pilih Tanggal --</option>";
+  if(tanggalSet.size === 0){
+    filterTanggal.disabled = true;
+  } else {
+    filterTanggal.disabled = false;
+    Array.from(tanggalSet).sort().forEach(tgl => {
+      const opt = document.createElement('option');
+      opt.value = tgl;
+      opt.textContent = tgl;
+      if(tgl === selectedTanggal) opt.selected = true;  // <-- Tetap pilih tanggal yang dipilih
+      filterTanggal.appendChild(opt);
+    });
+  }
+}
+
+// Fungsi untuk memuat laporan berdasarkan bulan, tanggal, dan subbidang
+async function loadMonitorLaporan(bulanTahun, tanggalFilter = "", subbidFilter = "") {
+  if (!bulanTahun) return;
+
+  // Ambil data laporan dari GAS
+  const res = await fetch(`${WEB_APP_URL}?action=getAllLaporan`);
+  const data = await res.json();
+
+  // Filter laporan berdasarkan bulan dan tanggal
+  const laporanUserBulan = data.filter(item => {
+    if (item.nama !== userData.nama) return false; // Hanya laporan pegawai yang sesuai dengan user
+    if (!item.timestamp) return false;
+    const tgl = new Date(item.timestamp);
+    const y = tgl.getFullYear();
+    let m = tgl.getMonth() + 1;
+    m = m < 10 ? '0' + m : m;
+    let d = tgl.getDate();
+    d = d < 10 ? '0' + d : d;
+    const itemBulanTahun = `${y}-${m}`;
+    const itemTanggal = `${y}-${m}-${d}`;
+    return itemBulanTahun === bulanTahun && (!tanggalFilter || itemTanggal === tanggalFilter);
+  });
+
+  // Filter berdasarkan Sub Bidang jika ada
+  const filteredLaporan = laporanUserBulan.filter(laporan => {
+    if (subbidFilter && laporan.subbid !== subbidFilter) {
+      return false;
+    }
+    return true;
+  });
+
+  // Menampilkan laporan yang sudah atau belum terisi
+  const pegawaiLaporan = filteredLaporan.map(laporan => {
+    const sesiTerisi = Object.keys(laporan).filter(key => key.includes("Sesi") && laporan[key].trim() !== "").length;
+    const status = sesiTerisi === 7 ? 'Lengkap' : 'Belum Lengkap';
+
+    return {
+      nama: laporan.nama,
+      tanggal: new Date(laporan.timestamp).toLocaleDateString(),
+      sesiTerisi: sesiTerisi,
+      status: status
+    };
+  });
+
+  // Render tabel
+  const tbody = document.querySelector("#tabel-monitor-laporan tbody");
+  tbody.innerHTML = "";
+
+  if (pegawaiLaporan.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="4" class="text-center">Belum ada laporan di periode ini.</td></tr>`;
+    return;
+  }
+
+  pegawaiLaporan.forEach(item => {
+    const row = document.createElement("tr");
+    row.innerHTML = `
+      <td>${item.nama}</td>
+      <td>${item.tanggal}</td>
+      <td>${item.sesiTerisi} / 7</td>
+      <td>${item.status}</td>
+    `;
+    tbody.appendChild(row);
+  });
+}
+
+// Event listener untuk filter bulan, tanggal, dan sub-bidang
+document.getElementById('filter-bulan-monitor').addEventListener('change', (e) => {
+  const bulan = e.target.value;
+  const tanggal = filterTanggal.value;
+  const subbid = filterSubBidang.value;
+  loadMonitorLaporan(bulan, tanggal, subbid);
+});
+
+document.getElementById('filter-tanggal').addEventListener('change', (e) => {
+  const tanggal = e.target.value;
+  const bulan = filterBulan.value;
+  const subbid = filterSubBidang.value;
+  loadMonitorLaporan(bulan, tanggal, subbid);
+});
+
+document.getElementById('filter-subbid-monitor').addEventListener('change', (e) => {
+  const subbid = e.target.value;
+  const bulan = filterBulan.value;
+  const tanggal = filterTanggal.value;
+  loadMonitorLaporan(bulan, tanggal, subbid);
+});
+
+// ==================== Simple Calendar ====================
 function renderSimpleCalendar() {
   const calendarEl = document.getElementById("simple-calendar");
   const calendarTitle = document.getElementById("calendar-title");
@@ -451,6 +571,7 @@ function renderSimpleCalendar() {
     });
 }
 
+// ==================== Sesi Status ====================
 function loadSesiStatus() {
   fetch(`${WEB_APP_URL}?action=getLaporan&nama=${userData.nama}`)
     .then(res => res.json())
@@ -468,6 +589,7 @@ function getJamSesi(i) {
   return jam[i - 1] || "";
 }
 
+// ==================== Sesi Form ====================
 function renderSesiForm() {
   const wrapper = document.getElementById("sesi-form");
   wrapper.innerHTML = "";
@@ -685,93 +807,6 @@ function populateTanggalOptions(laporanUser, bulanTahun, selectedTanggal = "") {
     });
   }
 }
-
-// Memuat data laporan berdasarkan bulan, tanggal, dan subbidang
-async function loadMonitorLaporan(bulanTahun, tanggalFilter = "", subbidFilter = "") {
-  if (!bulanTahun) return;
-
-  // Ambil data laporan dari GAS
-  const res = await fetch(`${WEB_APP_URL}?action=getAllLaporan`);
-  const data = await res.json();
-
-  // Filter laporan berdasarkan bulan dan tanggal
-  const laporanUserBulan = data.filter(item => {
-    if (item.nama !== userData.nama) return false; // Hanya laporan pegawai yang sesuai dengan user
-    if (!item.timestamp) return false;
-    const tgl = new Date(item.timestamp);
-    const y = tgl.getFullYear();
-    let m = tgl.getMonth() + 1;
-    m = m < 10 ? '0' + m : m;
-    let d = tgl.getDate();
-    d = d < 10 ? '0' + d : d;
-    const itemBulanTahun = `${y}-${m}`;
-    const itemTanggal = `${y}-${m}-${d}`;
-    return itemBulanTahun === bulanTahun && (!tanggalFilter || itemTanggal === tanggalFilter);
-  });
-
-  // Filter berdasarkan Sub Bidang jika ada
-  const filteredLaporan = laporanUserBulan.filter(laporan => {
-    if (subbidFilter && laporan.subbid !== subbidFilter) {
-      return false;
-    }
-    return true;
-  });
-
-  // Menampilkan laporan yang sudah atau belum terisi
-  const pegawaiLaporan = filteredLaporan.map(laporan => {
-    const sesiTerisi = Object.keys(laporan).filter(key => key.includes("Sesi") && laporan[key].trim() !== "").length;
-    const status = sesiTerisi === 7 ? 'Lengkap' : 'Belum Lengkap';
-
-    return {
-      nama: laporan.nama,
-      tanggal: new Date(laporan.timestamp).toLocaleDateString(),
-      sesiTerisi: sesiTerisi,
-      status: status
-    };
-  });
-
-  // Render the table
-  const tbody = document.querySelector("#tabel-monitor-laporan tbody");
-  tbody.innerHTML = "";
-
-  if (pegawaiLaporan.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="4" class="text-center">Belum ada laporan di periode ini.</td></tr>`;
-    return;
-  }
-
-  pegawaiLaporan.forEach(item => {
-    const row = document.createElement("tr");
-    row.innerHTML = `
-      <td>${item.nama}</td>
-      <td>${item.tanggal}</td>
-      <td>${item.sesiTerisi} / 7</td>
-      <td>${item.status}</td>
-    `;
-    tbody.appendChild(row);
-  });
-}
-
-// Event listener untuk filter bulan, tanggal, dan sub-bidang
-document.getElementById('filter-bulan-monitor').addEventListener('change', (e) => {
-  const bulan = e.target.value;
-  const tanggal = filterTanggal.value;
-  const subbid = filterSubBidang.value;
-  loadMonitorLaporan(bulan, tanggal, subbid);
-});
-
-document.getElementById('filter-tanggal').addEventListener('change', (e) => {
-  const tanggal = e.target.value;
-  const bulan = filterBulan.value;
-  const subbid = filterSubBidang.value;
-  loadMonitorLaporan(bulan, tanggal, subbid);
-});
-
-document.getElementById('filter-subbid-monitor').addEventListener('change', (e) => {
-  const subbid = e.target.value;
-  const bulan = filterBulan.value;
-  const tanggal = filterTanggal.value;
-  loadMonitorLaporan(bulan, tanggal, subbid);
-});
 
 // ==================== User Profile ====================
 function loadUserProfile() {
