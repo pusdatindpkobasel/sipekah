@@ -321,29 +321,6 @@ function setupFilters() {
   });
 }
 
-// Mengisi dropdown Sub Bidang berdasarkan jabatan pengguna
-function populateSubBidangFilter() {
-  const filterSubBidangElem = document.getElementById('filter-subbid-monitor');
-  filterSubBidangElem.innerHTML = "<option value=''>-- Pilih Sub Bidang --</option>"; // Reset pilihan
-
-  if (userData.jabatan === 'Admin' || userData.jabatan === 'Kepala Dinas' || userData.jabatan === 'Sekretaris') {
-    // Admin, Kepala Dinas, Sekretaris dapat memilih semua Sub Bidang
-    masterSubBidang.forEach(subbid => {
-      const option = document.createElement('option');
-      option.value = subbid;
-      option.textContent = subbid;
-      filterSubBidangElem.appendChild(option);
-    });
-  } else {
-    // Kepala Bidang dan Kepala Sub Bagian hanya bisa melihat subbidang mereka
-    const option = document.createElement('option');
-    option.value = userData.subbid;
-    option.textContent = userData.subbid;
-    filterSubBidangElem.appendChild(option);
-    filterSubBidangElem.disabled = true; // Disable untuk subbidang selain milik user
-  }
-}
-
 // Saat halaman Monitor Laporan tampil, load data bulan default dan subbidang
 function initMonitorLaporanPage() {
   const now = new Date();
@@ -361,6 +338,7 @@ function initMonitorLaporanPage() {
   populateSubBidangFilter();
 }
 
+// Mengisi dropdown Sub Bidang berdasarkan jabatan pengguna
 function populateSubBidangFilter() {
   const filterSubBidangElem = document.getElementById('filter-subbid-monitor');
   filterSubBidangElem.innerHTML = "<option value=''>-- Pilih Sub Bidang --</option>"; // Reset pilihan
@@ -676,6 +654,7 @@ function loadRiwayatLaporan(bulanTahun, tanggalFilter = "") {
     });
 }
 
+// Mengisi dropdown Tanggal berdasarkan laporan yang tersedia
 function populateTanggalOptions(laporanUser, bulanTahun, selectedTanggal = "") {
   const tanggalSet = new Set();
 
@@ -692,7 +671,7 @@ function populateTanggalOptions(laporanUser, bulanTahun, selectedTanggal = "") {
     }
   });
 
-  filterTanggal.innerHTML = `<option value="">-- Pilih Tanggal --</option>`;
+  filterTanggal.innerHTML = "<option value=''>-- Pilih Tanggal --</option>";
   if(tanggalSet.size === 0){
     filterTanggal.disabled = true;
   } else {
@@ -706,7 +685,8 @@ function populateTanggalOptions(laporanUser, bulanTahun, selectedTanggal = "") {
     });
   }
 }
-// Mengambil data laporan berdasarkan bulan, tanggal, dan subbidang
+
+// Memuat data laporan berdasarkan bulan, tanggal, dan subbidang
 async function loadMonitorLaporan(bulanTahun, tanggalFilter = "", subbidFilter = "") {
   if (!bulanTahun) return;
 
@@ -750,9 +730,9 @@ async function loadMonitorLaporan(bulanTahun, tanggalFilter = "", subbidFilter =
     };
   });
 
-  // Menampilkan data laporan di tabel
+  // Render the table
   const tbody = document.querySelector("#tabel-monitor-laporan tbody");
-  tbody.innerHTML = "";  // Clear existing rows
+  tbody.innerHTML = "";
 
   if (pegawaiLaporan.length === 0) {
     tbody.innerHTML = `<tr><td colspan="4" class="text-center">Belum ada laporan di periode ini.</td></tr>`;
@@ -771,7 +751,7 @@ async function loadMonitorLaporan(bulanTahun, tanggalFilter = "", subbidFilter =
   });
 }
 
-// Filter Bulan
+// Event listener untuk filter bulan, tanggal, dan sub-bidang
 document.getElementById('filter-bulan-monitor').addEventListener('change', (e) => {
   const bulan = e.target.value;
   const tanggal = filterTanggal.value;
@@ -779,7 +759,6 @@ document.getElementById('filter-bulan-monitor').addEventListener('change', (e) =
   loadMonitorLaporan(bulan, tanggal, subbid);
 });
 
-// Filter Tanggal
 document.getElementById('filter-tanggal').addEventListener('change', (e) => {
   const tanggal = e.target.value;
   const bulan = filterBulan.value;
@@ -787,7 +766,6 @@ document.getElementById('filter-tanggal').addEventListener('change', (e) => {
   loadMonitorLaporan(bulan, tanggal, subbid);
 });
 
-// Filter Sub Bidang
 document.getElementById('filter-subbid-monitor').addEventListener('change', (e) => {
   const subbid = e.target.value;
   const bulan = filterBulan.value;
