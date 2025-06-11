@@ -581,6 +581,15 @@ function loadSesiStatus() {
     });
 }
 
+// Fungsi untuk mendapatkan jam sesi
+function getJamSesi(i) {
+  const jam = [
+    "(07.30–08.30)", "(08.30–09.30)", "(09.30–10.30)", "(10.30–12.00)",
+    "(13.00–14.00)", "(14.00–15.00)", "(15.00–16.00)"
+  ];
+  return jam[i - 1] || "";
+}
+
 // ==================== Sesi Form ====================
 function renderSesiForm() {
   const wrapper = document.getElementById("sesi-form");
