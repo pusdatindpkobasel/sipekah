@@ -206,53 +206,6 @@
     color: black !important;
     font-weight: bold;
   }
-  #tanggal-filter-container {
-  display: flex;
-  overflow-x: auto;
-  padding: 10px 0;
-  gap: 10px;
-}
-
-.tanggal-cell {
-  width: 50px;
-  height: 50px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  border-radius: 50%;
-  cursor: pointer;
-  font-weight: bold;
-}
-
-.tanggal-cell:hover {
-  background-color: #f0f0f0;
-}
-
-.tanggal-cell.today {
-  background-color: yellow;
-  font-size: 1.2rem;
-}
-
-.tanggal-cell.disabled {
-  background-color: lightgray;
-  color: #ccc;
-  pointer-events: none;
-}
-
-.tanggal-cell.saturday, .tanggal-cell.sunday {
-  background-color: red;
-  color: white;
-}
-
-.tanggal-cell.reported {
-  background-color: green;
-  color: white;
-}
-
-.tanggal-cell.not-reported {
-  background-color: black;
-  color: white;
-}
 </style>
 </head>
 <body>
@@ -302,13 +255,6 @@
         </div>
       </div>
       <div class="col-lg-6">
-         <!-- Filter Tanggal -->
-<div class="mb-3">
-  <label for="filter-tanggal" class="form-label">Pilih Tanggal Laporan:</label>
-  <div id="tanggal-filter-container" class="d-flex overflow-auto">
-    <!-- Tanggal dinamis akan ditambahkan di sini -->
-  </div>
-</div>
         <div id="sesi-status"></div>
         <div id="sesi-form"></div>
       </div>
