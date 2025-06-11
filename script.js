@@ -355,30 +355,32 @@ function initMonitorLaporanPage() {
   const filterBulanElem = document.getElementById('filter-bulan-monitor');
   filterBulanElem.value = defaultMonthYear;
 
-  // Pastikan fungsi ini dipanggil untuk memuat laporan
   loadMonitorLaporan(defaultMonthYear);
 
   // Memanggil populateSubBidangFilter untuk mengisi filter subbidang
-  populateSubBidangFilter();  // Pastikan filter subbidang diatur dengan benar
+  populateSubBidangFilter();
 }
 
-// Event listener untuk filter Sub Bidang
-document.getElementById('filter-subbid-monitor').addEventListener('change', (e) => {
-  const subbid = e.target.value;
-  loadMonitorLaporan(filterBulan.value, subbid);  // Memuat laporan dengan subbid yang dipilih
-});
+function populateSubBidangFilter() {
+  const filterSubBidangElem = document.getElementById('filter-subbid-monitor');
+  filterSubBidangElem.innerHTML = "<option value=''>-- Pilih Sub Bidang --</option>"; // Reset pilihan
 
-// Filter Sub Bidang
-function filterBySubBidang(subbid) {
-  const rows = document.querySelectorAll("#tabel-monitor-laporan tbody tr");
-  rows.forEach(row => {
-    const subBidangCell = row.cells[0].textContent;
-    if (subbid && subBidangCell !== subbid) {
-      row.style.display = "none";
-    } else {
-      row.style.display = "";
-    }
-  });
+  if (userData.jabatan === 'Admin' || userData.jabatan === 'Kepala Dinas' || userData.jabatan === 'Sekretaris') {
+    // Admin, Kepala Dinas, Sekretaris dapat memilih semua Sub Bidang
+    masterSubBidang.forEach(subbid => {
+      const option = document.createElement('option');
+      option.value = subbid;
+      option.textContent = subbid;
+      filterSubBidangElem.appendChild(option);
+    });
+  } else {
+    // Kepala Bidang dan Kepala Sub Bagian hanya bisa melihat subbidang mereka
+    const option = document.createElement('option');
+    option.value = userData.subbid;
+    option.textContent = userData.subbid;
+    filterSubBidangElem.appendChild(option);
+    filterSubBidangElem.disabled = true; // Disable untuk subbidang selain milik user
+  }
 }
 
 function renderSimpleCalendar() {
@@ -704,49 +706,41 @@ function populateTanggalOptions(laporanUser, bulanTahun, selectedTanggal = "") {
     });
   }
 }
-// ==================== Monitor Laporan ====================
-async function loadMonitorLaporan(bulanTahun, subbidFilter = "") {
+// Mengambil data laporan berdasarkan bulan, tanggal, dan subbidang
+async function loadMonitorLaporan(bulanTahun, tanggalFilter = "", subbidFilter = "") {
   if (!bulanTahun) return;
 
   // Ambil data laporan dari GAS
   const res = await fetch(`${WEB_APP_URL}?action=getAllLaporan`);
   const data = await res.json();
 
-  // Filter laporan user dan bulan
+  // Filter laporan berdasarkan bulan dan tanggal
   const laporanUserBulan = data.filter(item => {
-    if (item.nama !== userData.nama) return false;
+    if (item.nama !== userData.nama) return false; // Hanya laporan pegawai yang sesuai dengan user
     if (!item.timestamp) return false;
     const tgl = new Date(item.timestamp);
     const y = tgl.getFullYear();
     let m = tgl.getMonth() + 1;
     m = m < 10 ? '0' + m : m;
-    return `${y}-${m}` === bulanTahun;
+    let d = tgl.getDate();
+    d = d < 10 ? '0' + d : d;
+    const itemBulanTahun = `${y}-${m}`;
+    const itemTanggal = `${y}-${m}-${d}`;
+    return itemBulanTahun === bulanTahun && (!tanggalFilter || itemTanggal === tanggalFilter);
   });
 
-  // Filter berdasarkan Jabatan, Sub Bidang, dan Sub Bidang yang dipilih
+  // Filter berdasarkan Sub Bidang jika ada
   const filteredLaporan = laporanUserBulan.filter(laporan => {
-    if (userData.jabatan === 'Admin' || userData.jabatan === 'Kepala Dinas' || userData.jabatan === 'Sekretaris') {
-      return true;  // Admin, Kepala Dinas, dan Sekretaris dapat melihat semua
-    }
-
-    if (userData.jabatan === 'Kepala Bidang' || userData.jabatan === 'Kepala Sub Bagian') {
-      // Kepala Bidang atau Kepala Sub Bagian hanya bisa melihat laporan dari sub bidang mereka
-      if (laporan.subbid === userData.subbid) {
-        return true;  // Laporan yang sesuai dengan sub bidang
-      }
-    }
-
-    // Menambahkan filter berdasarkan subbid yang dipilih
     if (subbidFilter && laporan.subbid !== subbidFilter) {
-      return false; // Mengabaikan laporan yang subbidnya tidak sesuai dengan filter
+      return false;
     }
-    return false;
+    return true;
   });
 
-  // Menampilkan data pegawai yang sudah dan belum mengisi laporan
+  // Menampilkan laporan yang sudah atau belum terisi
   const pegawaiLaporan = filteredLaporan.map(laporan => {
     const sesiTerisi = Object.keys(laporan).filter(key => key.includes("Sesi") && laporan[key].trim() !== "").length;
-    const status = sesiTerisi === 7 ? 'Laporan Lengkap' : 'Belum Lengkap';
+    const status = sesiTerisi === 7 ? 'Lengkap' : 'Belum Lengkap';
 
     return {
       nama: laporan.nama,
@@ -776,6 +770,30 @@ async function loadMonitorLaporan(bulanTahun, subbidFilter = "") {
     tbody.appendChild(row);
   });
 }
+
+// Filter Bulan
+document.getElementById('filter-bulan-monitor').addEventListener('change', (e) => {
+  const bulan = e.target.value;
+  const tanggal = filterTanggal.value;
+  const subbid = filterSubBidang.value;
+  loadMonitorLaporan(bulan, tanggal, subbid);
+});
+
+// Filter Tanggal
+document.getElementById('filter-tanggal').addEventListener('change', (e) => {
+  const tanggal = e.target.value;
+  const bulan = filterBulan.value;
+  const subbid = filterSubBidang.value;
+  loadMonitorLaporan(bulan, tanggal, subbid);
+});
+
+// Filter Sub Bidang
+document.getElementById('filter-subbid-monitor').addEventListener('change', (e) => {
+  const subbid = e.target.value;
+  const bulan = filterBulan.value;
+  const tanggal = filterTanggal.value;
+  loadMonitorLaporan(bulan, tanggal, subbid);
+});
 
 // ==================== User Profile ====================
 function loadUserProfile() {
