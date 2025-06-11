@@ -581,7 +581,6 @@ function loadSesiStatus() {
     });
 }
 
-// Fungsi untuk mendapatkan jam sesi
 function getJamSesi(i) {
   const jam = [
     "(07.30–08.30)", "(08.30–09.30)", "(09.30–10.30)", "(10.30–12.00)",
@@ -595,18 +594,8 @@ function renderSesiForm() {
   const wrapper = document.getElementById("sesi-form");
   wrapper.innerHTML = "";
 
-  // Menambahkan pilihan tanggal laporan
-  const tanggalLaporanInput = document.createElement("div");
-  tanggalLaporanInput.className = "mb-3";
-  tanggalLaporanInput.innerHTML = `
-    <label for="tanggal-laporan" class="form-label">Tanggal Laporan:</label>
-    <input type="date" id="tanggal-laporan" class="form-control" value="" />
-  `;
-  wrapper.appendChild(tanggalLaporanInput);
-
   let totalIsi = 0;
 
-  // Menambahkan sesi untuk pengisian
   for (let i = 1; i <= 7; i++) {
     const sudah = sesiStatus[`sesi${i}`];
     const bukti = sesiStatus[`bukti${i}`];
@@ -641,49 +630,13 @@ function renderSesiForm() {
     `;
   }
 
-  // Validasi input tanggal
-  const tanggalLaporanElem = document.getElementById('tanggal-laporan');
-  const today = new Date();
-  const todayStr = today.toISOString().split('T')[0]; // YYYY-MM-DD format
-  tanggalLaporanElem.max = todayStr; // Menonaktifkan tanggal setelah hari ini
-
-  // Mengambil tanggal yang sudah terisi laporan
-  const laporanDates = new Set();
-  // Ambil data laporan dan periksa tanggal yang sudah ada
-  fetch(`${WEB_APP_URL}?action=getAllLaporan`)
-    .then(res => res.json())
-    .then(data => {
-      data.forEach(item => {
-        if (item.nama === userData.nama) {
-          const tgl = new Date(item.timestamp);
-          const tglStr = tgl.toISOString().split('T')[0];
-          laporanDates.add(tglStr); // Menyimpan tanggal yang sudah ada laporan
-        }
-      });
-
-      // Menonaktifkan tanggal yang sudah dilaporkan
-      tanggalLaporanElem.addEventListener('input', () => {
-        if (laporanDates.has(tanggalLaporanElem.value)) {
-          tanggalLaporanElem.setCustomValidity("Laporan sudah ada pada tanggal ini.");
-        } else {
-          tanggalLaporanElem.setCustomValidity("");
-        }
-      });
-    })
-    .catch(err => console.error("Gagal load data laporan untuk validasi tanggal:", err));
+  console.log('renderSesiForm called, totalIsi:', totalIsi);
 }
 
 // Fungsi submit sesi dengan upload file dan data form
 async function submitSesi(i) {
   const pekerjaan = document.getElementById(`sesi${i}`).value.trim();
   const file = document.getElementById(`file${i}`).files[0];
-  const tanggalLaporan = document.getElementById('tanggal-laporan').value;
-
-  // Validasi tanggal laporan
-  if (!tanggalLaporan) {
-    Swal.fire("Pilih tanggal laporan", "", "warning");
-    return;
-  }
 
   if (!pekerjaan || !file) {
     Swal.fire("Isi uraian & pilih file", "", "warning");
@@ -731,7 +684,6 @@ async function submitSesi(i) {
       formDataSubmit.append('status', userData.status);
       formDataSubmit.append('golongan', userData.golongan);
       formDataSubmit.append('jabatan', userData.jabatan);
-      formDataSubmit.append('tanggalLaporan', tanggalLaporan);
       formDataSubmit.append('sesiKey', `sesi${i}`);
       formDataSubmit.append('buktiKey', `bukti${i}`);
       formDataSubmit.append('sesiVal', pekerjaan);
