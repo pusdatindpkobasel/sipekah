@@ -180,9 +180,6 @@ const masterJabatan = [
 ];
 
 window.onload = () => {
-  // Initial page load logic
-  renderSesiForm();  // Renders form on initial load
-  loadSesiStatus();  // Load status of sesi for the selected date
   // Cek login user dari localStorage
   const savedUser = localStorage.getItem('userData');
   const loginTimeStr = localStorage.getItem('loginTime');
@@ -574,158 +571,16 @@ function renderSimpleCalendar() {
     });
 }
 
-// ==================== Filter Tanggal ====================
-async function renderTanggalFilter() {
-  const tanggalFilterContainer = document.getElementById("tanggal-filter-container");
-  const today = new Date();
-  const todayStr = today.toISOString().split('T')[0];
-  
-  // Ambil tanggal yang sudah diisi laporannya
-  const laporanDates = new Set();
-  const res = await fetch(`${WEB_APP_URL}?action=getAllLaporan`);
-  const data = await res.json();
-  
-  data.forEach(item => {
-    const laporanDate = new Date(item.timestamp).toISOString().split('T')[0];
-    laporanDates.add(laporanDate);
-  });
-
-  const daysInMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate(); // Mengambil jumlah hari dalam bulan ini
-  
-  tanggalFilterContainer.innerHTML = ''; // Kosongkan tanggal filter sebelumnya
-
-  for (let i = 1; i <= daysInMonth; i++) {
-    const date = new Date(today.getFullYear(), today.getMonth(), i);
-    const dateStr = date.toISOString().split('T')[0];
-    
-    // Cek jika tanggal tersebut adalah hari Sabtu atau Minggu
-    const isWeekend = date.getDay() === 6 || date.getDay() === 0;
-
-    // Tentukan kelas tanggal berdasarkan kondisi
-    let cellClass = 'tanggal-cell';
-    
-    if (isWeekend) {
-      cellClass += ' saturday';
-    } else if (dateStr === todayStr) {
-      cellClass += ' today';
-    } else if (laporanDates.has(dateStr)) {
-      cellClass += ' reported';
-    } else if (dateStr < todayStr) {
-      cellClass += ' not-reported';
-    } else {
-      cellClass += ' disabled';
-    }
-
-    const dateCell = document.createElement('div');
-    dateCell.className = cellClass;
-    dateCell.textContent = i;
-    dateCell.addEventListener('click', () => onTanggalClick(dateStr));  // Event untuk klik tanggal
-
-    tanggalFilterContainer.appendChild(dateCell);
-  }
-}
-
-// Fungsi ketika tanggal dipilih
-function onTanggalClick(dateStr) {
-  const selectedDate = new Date(dateStr);
-  const today = new Date();
-
-  // Cek apakah tanggal dapat dipilih
-  if (selectedDate > today) {
-    Swal.fire('Tanggal tidak valid', 'Tanggal yang dipilih tidak boleh lebih dari hari ini.', 'error');
-    return;
-  }
-
-  const sesiFormContainer = document.getElementById("sesi-form");
-  sesiFormContainer.innerHTML = ''; // Kosongkan form sesi
-
-  // Jika tanggal sudah ada laporannya, tampilkan isian laporan
-  fetch(`${WEB_APP_URL}?action=getLaporan&tanggal=${dateStr}`)
+// ==================== Sesi Status ====================
+function loadSesiStatus() {
+  fetch(`${WEB_APP_URL}?action=getLaporan&nama=${userData.nama}`)
     .then(res => res.json())
     .then(data => {
-      if (data.length > 0) {
-        // Jika laporan sudah ada, render laporan
-        renderSesiForm(data[0], dateStr);
-      } else {
-        // Jika laporan belum ada, kosongkan form
-        renderSesiForm(null, dateStr);
-      }
-    })
-    .catch(err => {
-      console.error("Error fetching laporan:", err);
+      sesiStatus = data || {};
+      renderSesiForm();
     });
 }
 
-// Global variables
-let sesiStatus = {};
-let selectedDate = new Date().toISOString().split('T')[0];  // Default to today
-
-// Render Sesi Form based on selected date
-function renderSesiForm() {
-  const wrapper = document.getElementById("sesi-form");
-  const selectedDateFormatted = selectedDate;
-
-  wrapper.innerHTML = ""; // Clear previous content
-
-  // Example: Add logic to load data for the selected date
-  fetch(`${WEB_APP_URL}?action=getLaporanByDate&nama=${userData.nama}&date=${selectedDateFormatted}`)
-    .then(res => res.json())
-    .then(data => {
-      if (data) {
-        // If there's a report for the selected date, show it in the form
-        for (let i = 1; i <= 7; i++) {
-          const sesiKey = `Sesi ${i}`;
-          const buktiKey = `Bukti ${i}`;
-          const div = document.createElement("div");
-          div.className = "card card-sesi mb-3";
-
-          div.innerHTML = `
-            <div class="card-body">
-              <h5 class="card-title">Sesi ${i} ${getJamSesi(i)}</h5>
-              ${data[sesiKey] ? `
-                <div class="alert alert-success p-2">
-                  ✅ Sudah dikirim: ${data[sesiKey]}
-                  ${data[buktiKey] ? `<br><a href="${data[buktiKey]}" target="_blank">📎 Lihat Bukti</a>` : ""}
-                  <br><small class="text-muted">Isian sesi tidak bisa diedit ulang.</small>
-                </div>
-              ` : `
-                <textarea id="sesi${i}" class="form-control mb-2" placeholder="Uraian pekerjaan sesi ${i}"></textarea>
-                <input type="file" id="file${i}" class="form-control mb-2" accept=".jpg,.jpeg,.png,.pdf" />
-                <button class="btn btn-success" id="btn-kirim-sesi${i}">Kirim Sesi ${i}</button>
-              `}
-            </div>
-          `;
-          wrapper.appendChild(div);
-        }
-      } else {
-        // If no report for the selected date, show empty form
-        for (let i = 1; i <= 7; i++) {
-          const div = document.createElement("div");
-          div.className = "card card-sesi mb-3";
-          div.innerHTML = `
-            <div class="card-body">
-              <h5 class="card-title">Sesi ${i} ${getJamSesi(i)}</h5>
-              <textarea id="sesi${i}" class="form-control mb-2" placeholder="Uraian pekerjaan sesi ${i}"></textarea>
-              <input type="file" id="file${i}" class="form-control mb-2" accept=".jpg,.jpeg,.png,.pdf" />
-              <button class="btn btn-success" id="btn-kirim-sesi${i}">Kirim Sesi ${i}</button>
-            </div>
-          `;
-          wrapper.appendChild(div);
-        }
-      }
-    })
-    .catch(err => {
-      console.error('Error loading data for selected date:', err);
-    });
-}
-
-// Event Listener for Tanggal Pilihan
-document.getElementById('pilih-tanggal-laporan').addEventListener('change', (e) => {
-  selectedDate = e.target.value;
-  renderSesiForm();  // Re-render sesi form when date changes
-});
-
-// Example function for session time
 function getJamSesi(i) {
   const jam = [
     "(07.30–08.30)", "(08.30–09.30)", "(09.30–10.30)", "(10.30–12.00)",
@@ -734,21 +589,48 @@ function getJamSesi(i) {
   return jam[i - 1] || "";
 }
 
-// Load Sesi Status for the selected date
-function loadSesiStatus() {
-  fetch(`${WEB_APP_URL}?action=getLaporanByDate&nama=${userData.nama}&date=${selectedDate}`)
-    .then(res => res.json())
-    .then(data => {
-      const statusEl = document.getElementById('sesi-status');
-      statusEl.innerHTML = `
-        <div class="alert alert-info text-center">
-          ${data ? `Laporan sudah terisi untuk tanggal ${selectedDate}.` : `Laporan belum terisi untuk tanggal ${selectedDate}.`}
-        </div>
-      `;
-    })
-    .catch(err => {
-      console.error('Error loading sesi status:', err);
-    });
+// ==================== Sesi Form ====================
+function renderSesiForm() {
+  const wrapper = document.getElementById("sesi-form");
+  wrapper.innerHTML = "";
+
+  let totalIsi = 0;
+
+  for (let i = 1; i <= 7; i++) {
+    const sudah = sesiStatus[`sesi${i}`];
+    const bukti = sesiStatus[`bukti${i}`];
+    const div = document.createElement("div");
+    div.className = "card card-sesi mb-3";
+    div.innerHTML = `
+      <div class="card-body">
+        <h5 class="card-title">Sesi ${i} ${getJamSesi(i)}</h5>
+        ${sudah ? `
+          <div class="alert alert-success p-2">
+            ✅ Sudah dikirim: ${sudah}
+            ${bukti ? `<br><a href="${bukti}" target="_blank">📎 Lihat Bukti</a>` : ""}
+            <br><small class="text-muted">Isian sesi tidak bisa diedit ulang.</small>
+          </div>
+        ` : `
+          <textarea id="sesi${i}" class="form-control mb-2" placeholder="Uraian pekerjaan sesi ${i}"></textarea>
+          <input type="file" id="file${i}" class="form-control mb-2" accept=".jpg,.jpeg,.png,.pdf" />
+          <button class="btn btn-success" id="btn-kirim-sesi${i}">Kirim Sesi ${i}</button>
+        `}
+      </div>
+    `;
+    if (sudah) totalIsi++;
+    wrapper.appendChild(div);
+  }
+
+  const statusEl = document.getElementById("sesi-status");
+  if (statusEl) {
+    statusEl.innerHTML = `
+      <div class="alert alert-info text-center">
+        🔄 ${totalIsi} dari 7 sesi telah diisi
+      </div>
+    `;
+  }
+
+  console.log('renderSesiForm called, totalIsi:', totalIsi);
 }
 
 // Fungsi submit sesi dengan upload file dan data form
