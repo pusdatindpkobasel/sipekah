@@ -571,88 +571,6 @@ function renderSimpleCalendar() {
     });
 }
 
-// ==================== Filter Tanggal ====================
-async function renderTanggalFilter() {
-  const tanggalFilterContainer = document.getElementById("tanggal-filter-container");
-  const today = new Date();
-  const todayStr = today.toISOString().split('T')[0];
-  
-  // Ambil tanggal yang sudah diisi laporannya
-  const laporanDates = new Set();
-  const res = await fetch(`${WEB_APP_URL}?action=getAllLaporan`);
-  const data = await res.json();
-  
-  data.forEach(item => {
-    const laporanDate = new Date(item.timestamp).toISOString().split('T')[0];
-    laporanDates.add(laporanDate);
-  });
-
-  const daysInMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate(); // Mengambil jumlah hari dalam bulan ini
-  
-  tanggalFilterContainer.innerHTML = ''; // Kosongkan tanggal filter sebelumnya
-
-  for (let i = 1; i <= daysInMonth; i++) {
-    const date = new Date(today.getFullYear(), today.getMonth(), i);
-    const dateStr = date.toISOString().split('T')[0];
-    
-    // Cek jika tanggal tersebut adalah hari Sabtu atau Minggu
-    const isWeekend = date.getDay() === 6 || date.getDay() === 0;
-
-    // Tentukan kelas tanggal berdasarkan kondisi
-    let cellClass = 'tanggal-cell';
-    
-    if (isWeekend) {
-      cellClass += ' saturday';
-    } else if (dateStr === todayStr) {
-      cellClass += ' today';
-    } else if (laporanDates.has(dateStr)) {
-      cellClass += ' reported';
-    } else if (dateStr < todayStr) {
-      cellClass += ' not-reported';
-    } else {
-      cellClass += ' disabled';
-    }
-
-    const dateCell = document.createElement('div');
-    dateCell.className = cellClass;
-    dateCell.textContent = i;
-    dateCell.addEventListener('click', () => onTanggalClick(dateStr));  // Event untuk klik tanggal
-
-    tanggalFilterContainer.appendChild(dateCell);
-  }
-}
-
-// Fungsi ketika tanggal dipilih
-function onTanggalClick(dateStr) {
-  const selectedDate = new Date(dateStr);
-  const today = new Date();
-
-  // Cek apakah tanggal dapat dipilih
-  if (selectedDate > today) {
-    Swal.fire('Tanggal tidak valid', 'Tanggal yang dipilih tidak boleh lebih dari hari ini.', 'error');
-    return;
-  }
-
-  const sesiFormContainer = document.getElementById("sesi-form");
-  sesiFormContainer.innerHTML = ''; // Kosongkan form sesi
-
-  // Jika tanggal sudah ada laporannya, tampilkan isian laporan
-  fetch(`${WEB_APP_URL}?action=getLaporan&tanggal=${dateStr}`)
-    .then(res => res.json())
-    .then(data => {
-      if (data.length > 0) {
-        // Jika laporan sudah ada, render laporan
-        renderSesiForm(data[0], dateStr);
-      } else {
-        // Jika laporan belum ada, kosongkan form
-        renderSesiForm(null, dateStr);
-      }
-    })
-    .catch(err => {
-      console.error("Error fetching laporan:", err);
-    });
-}
-
 // ==================== Sesi Status ====================
 function loadSesiStatus() {
   fetch(`${WEB_APP_URL}?action=getLaporan&nama=${userData.nama}`)
@@ -671,20 +589,16 @@ function getJamSesi(i) {
   return jam[i - 1] || "";
 }
 
-// ==================== Render Sesi Form ====================
-function renderSesiForm(laporan = null, dateStr = "") {
+// ==================== Sesi Form ====================
+function renderSesiForm() {
   const wrapper = document.getElementById("sesi-form");
   wrapper.innerHTML = "";
 
-  // Menambahkan tanggal ke form
-  const tanggalLaporan = document.createElement("input");
-  tanggalLaporan.type = "hidden";
-  tanggalLaporan.value = dateStr;
-  wrapper.appendChild(tanggalLaporan);
+  let totalIsi = 0;
 
   for (let i = 1; i <= 7; i++) {
-    const sudah = laporan ? laporan[`sesi${i}`] : null;
-    const bukti = laporan ? laporan[`bukti${i}`] : null;
+    const sudah = sesiStatus[`sesi${i}`];
+    const bukti = sesiStatus[`bukti${i}`];
     const div = document.createElement("div");
     div.className = "card card-sesi mb-3";
     div.innerHTML = `
@@ -703,9 +617,18 @@ function renderSesiForm(laporan = null, dateStr = "") {
         `}
       </div>
     `;
+    if (sudah) totalIsi++;
     wrapper.appendChild(div);
   }
-}
+
+  const statusEl = document.getElementById("sesi-status");
+  if (statusEl) {
+    statusEl.innerHTML = `
+      <div class="alert alert-info text-center">
+        🔄 ${totalIsi} dari 7 sesi telah diisi
+      </div>
+    `;
+  }
 
   console.log('renderSesiForm called, totalIsi:', totalIsi);
 }
@@ -761,7 +684,6 @@ async function submitSesi(i) {
       formDataSubmit.append('status', userData.status);
       formDataSubmit.append('golongan', userData.golongan);
       formDataSubmit.append('jabatan', userData.jabatan);
-      formDataSubmit.append('tanggalLaporan', dateStr); // Kirim tanggal laporan
       formDataSubmit.append('sesiKey', `sesi${i}`);
       formDataSubmit.append('buktiKey', `bukti${i}`);
       formDataSubmit.append('sesiVal', pekerjaan);
@@ -772,6 +694,7 @@ async function submitSesi(i) {
 
       if (result.success) {
         Swal.fire("Berhasil", "Sesi berhasil dikirim", "success");
+        loadSesiStatus();
       } else {
         Swal.fire("Gagal", "Terjadi kesalahan: " + (result.message || ""), "error");
       }
