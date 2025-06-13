@@ -705,8 +705,6 @@ function renderSesiForm(laporan = null, dateStr = "") {
     `;
     wrapper.appendChild(div);
   }
-}
-
   console.log('renderSesiForm called, totalIsi:', totalIsi);
 }
 
